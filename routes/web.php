@@ -64,6 +64,12 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::put('/kursus/{id}', [kursusController::class, 'update'])->name('kursus.update');
     Route::delete('/kursus/{id}', [kursusController::class, 'destroy'])->name('kursus.destroy');
     Route::get('/materi-kursus', [materinController::class, 'materiKursus'])->name('materi-kursus');
+    Route::get('/materi-kursus/create', [materinController::class, 'create'])->name('materi-kursus.create');
+    Route::post('/materi-kursus', [materinController::class, 'store'])->name('materi-kursus.store');
+    Route::get('/materi-kursus/{id}', [materinController::class, 'show'])->name('materi-kursus.show');
+    Route::get('/materi-kursus/{id}/edit', [materinController::class, 'edit'])->name('materi-kursus.edit');
+    Route::put('/materi-kursus/{id}', [materinController::class, 'update'])->name('materi-kursus.update');
+    Route::delete('/materi-kursus/{id}', [materinController::class, 'destroy'])->name('materi-kursus.destroy');
     Route::get('/katalog-produk', [katalogController::class, 'katalogProduk'])->name('katalog-produk');
     Route::get('/laporan-keuangan', [laporanController::class, 'laporanKeuangan'])->name('laporan-keuangan');
     Route::get('/analisis-peserta', [analisisController::class, 'analisisPeserta'])->name('analisis-peserta');

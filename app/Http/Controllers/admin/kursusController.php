@@ -38,6 +38,22 @@ class kursusController extends Controller
             'gambar' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ]);
 
+        // Generate kode kursus otomatis (KRS001, KRS002, dst)
+        $lastKursus = Kursus::whereNotNull('kode_kursus')
+            ->where('kode_kursus', 'like', 'KRS%')
+            ->orderByRaw('CAST(SUBSTRING(kode_kursus, 4) AS UNSIGNED) DESC')
+            ->first();
+        
+        $nextNumber = 1;
+        
+        if ($lastKursus && $lastKursus->kode_kursus) {
+            // Extract number from last kode_kursus (e.g., KRS001 -> 1)
+            $lastNumber = (int) substr($lastKursus->kode_kursus, 3);
+            $nextNumber = $lastNumber + 1;
+        }
+        
+        $validatedData['kode_kursus'] = 'KRS' . str_pad($nextNumber, 3, '0', STR_PAD_LEFT);
+
         // Handle file upload
         if ($request->hasFile('gambar')) {
             $image = $request->file('gambar');

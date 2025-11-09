@@ -45,7 +45,12 @@
         @endif
         <div class="card-body">
           <div class="d-flex justify-content-between align-items-start mb-2">
-            <h5 class="card-title mb-0">{{ $item->nama_kursus }}</h5>
+            <div>
+              <h5 class="card-title mb-0">{{ $item->nama_kursus }}</h5>
+              @if($item->kode_kursus)
+                <small class="text-muted">Kode: {{ $item->kode_kursus }}</small>
+              @endif
+            </div>
             <span class="badge {{ $item->status === 'aktif' ? 'bg-label-success' : 'bg-label-warning' }}">
               {{ ucfirst($item->status) }}
             </span>
