@@ -71,6 +71,10 @@ Route::prefix('dashboard')->name('dashboard.')->group(function () {
     Route::put('/materi-kursus/{id}', [materinController::class, 'update'])->name('materi-kursus.update');
     Route::delete('/materi-kursus/{id}', [materinController::class, 'destroy'])->name('materi-kursus.destroy');
     Route::get('/katalog-produk', [katalogController::class, 'katalogProduk'])->name('katalog-produk');
+    Route::post('/katalog-produk', [katalogController::class, 'store'])->name('katalog-produk.store');
+    Route::get('/katalog-produk/{id}', [katalogController::class, 'show'])->name('katalog-produk.show');
+    Route::put('/katalog-produk/{id}', [katalogController::class, 'update'])->name('katalog-produk.update');
+    Route::delete('/katalog-produk/{id}', [katalogController::class, 'destroy'])->name('katalog-produk.destroy');
     Route::get('/laporan-keuangan', [laporanController::class, 'laporanKeuangan'])->name('laporan-keuangan');
     Route::get('/analisis-peserta', [analisisController::class, 'analisisPeserta'])->name('analisis-peserta');
     Route::get('/chat', [chatController::class, 'chat'])->name('chat');

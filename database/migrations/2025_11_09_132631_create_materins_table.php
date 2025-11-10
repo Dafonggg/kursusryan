@@ -13,7 +13,12 @@ return new class extends Migration
     {
         Schema::create('materins', function (Blueprint $table) {
             $table->id('id_materin');
-            $table->foreignId('id_kursus')->constrained('kursus')->onDelete('cascade');
+            $table->unsignedBigInteger('id_kursus');
+            $table->foreign('id_kursus')
+                ->references('id_kursus')
+                ->on('kursus')
+                ->onDelete('cascade');
+
             $table->enum('jenis_file', ['pdf', 'doc', 'ppt', 'video', 'link']);
             $table->string('file_materin')->nullable();
             $table->string('link_video')->nullable();

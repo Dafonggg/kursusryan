@@ -13,6 +13,6 @@ class Kursus extends Model
 
     public function materins()
     {
-        return $this->hasMany(materin::class, 'id_kursus');
+        return $this->hasMany(materin::class, 'id_kursus', 'id_kursus');
     }
 }

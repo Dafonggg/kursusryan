@@ -13,6 +13,6 @@ class materin extends Model
 
     public function kursus()
     {
-        return $this->belongsTo(Kursus::class, 'id_kursus');
+        return $this->belongsTo(Kursus::class, 'id_kursus', 'id_kursus');
     }
 }
