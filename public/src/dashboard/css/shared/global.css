@@ -1,0 +1,229 @@
+/**
+ * Global Styles
+ * Shared styles for all dashboards
+ */
+
+/* Custom Dashboard Styles */
+.dashboard-widget {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.dashboard-widget:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* KPI Card Styles */
+.kpi-card {
+    border-left: 4px solid transparent;
+}
+
+.kpi-card.kpi-primary {
+    border-left-color: #009ef7;
+}
+
+.kpi-card.kpi-success {
+    border-left-color: #50cd89;
+}
+
+.kpi-card.kpi-warning {
+    border-left-color: #ffc700;
+}
+
+.kpi-card.kpi-danger {
+    border-left-color: #f1416c;
+}
+
+/* Chart Container Styles */
+.chart-container {
+    position: relative;
+    height: 300px;
+}
+
+.chart-container-sm {
+    position: relative;
+    height: 200px;
+}
+
+.chart-container-lg {
+    position: relative;
+    height: 400px;
+}
+
+/* Badge Custom Styles */
+.badge-custom {
+    padding: 0.35em 0.65em;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 0.35rem;
+}
+
+/* Table Styles */
+.table-dashboard {
+    font-size: 0.925rem;
+}
+
+.table-dashboard th {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+    color: #6c757d;
+}
+
+/* Session Card Styles */
+.session-card {
+    border: 1px solid #e4e6ef;
+    border-radius: 0.475rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    transition: all 0.2s ease;
+}
+
+.session-card:hover {
+    border-color: #009ef7;
+    box-shadow: 0 2px 8px rgba(0, 158, 247, 0.1);
+}
+
+.session-card.online {
+    border-left: 4px solid #50cd89;
+}
+
+.session-card.offline {
+    border-left: 4px solid #6c757d;
+}
+
+/* Status Indicator */
+.status-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 0.5rem;
+}
+
+.status-indicator.active {
+    background-color: #50cd89;
+}
+
+.status-indicator.pending {
+    background-color: #ffc700;
+}
+
+.status-indicator.expired {
+    background-color: #f1416c;
+}
+
+/* Progress Bar Custom */
+.progress-custom {
+    height: 8px;
+    border-radius: 0.475rem;
+    background-color: #f1f1f2;
+}
+
+.progress-custom .progress-bar {
+    border-radius: 0.475rem;
+}
+
+/* Avatar Group */
+.avatar-group {
+    display: flex;
+    align-items: center;
+}
+
+.avatar-group .avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    margin-left: -8px;
+}
+
+.avatar-group .avatar:first-child {
+    margin-left: 0;
+}
+
+/* Quick Action Button */
+.quick-action-btn {
+    padding: 1rem;
+    border: 1px solid #e4e6ef;
+    border-radius: 0.475rem;
+    text-align: center;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.quick-action-btn:hover {
+    border-color: #009ef7;
+    background-color: #f1faff;
+    transform: translateY(-2px);
+}
+
+.quick-action-btn .icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+    color: #009ef7;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #6c757d;
+}
+
+.empty-state .icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+/* Loading State */
+.loading-state {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 3rem;
+}
+
+.spinner-custom {
+    width: 3rem;
+    height: 3rem;
+    border: 4px solid #f1f1f2;
+    border-top-color: #009ef7;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .chart-container {
+        height: 250px;
+    }
+    
+    .chart-container-lg {
+        height: 300px;
+    }
+    
+    .kpi-card {
+        margin-bottom: 1rem;
+    }
+}
+
+/* Print Styles */
+@media print {
+    .dashboard-widget {
+        break-inside: avoid;
+    }
+    
+    .no-print {
+        display: none !important;
+    }
+}
+

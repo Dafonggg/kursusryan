@@ -1,36 +1,20 @@
-@if(isset($useBuildComment) && $useBuildComment)
-<!-- Core JS -->
-@endif
+<!--begin::Javascript-->
+<script>var hostUrl = "{{ asset('metronic_html_v8.2.9_demo1/demo1/assets/') }}";</script>
+<!--begin::Global Javascript Bundle(mandatory for all pages)-->
+<script src="{{ asset('metronic_html_v8.2.9_demo1/demo1/assets/plugins/global/plugins.bundle.js') }}"></script>
+<script src="{{ asset('metronic_html_v8.2.9_demo1/demo1/assets/js/scripts.bundle.js') }}"></script>
+<!--end::Global Javascript Bundle-->
+<!--begin::Vendors Javascript(used for this page only)-->
+<script src="{{ asset('metronic_html_v8.2.9_demo1/demo1/assets/plugins/custom/datatables/datatables.bundle.js') }}"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!--end::Vendors Javascript-->
+<!--begin::Shared Utilities-->
+<script type="module" src="{{ asset('metronic_html_v8.2.9_demo1/demo1/assets/dashboard/js/shared/chart-config.js') }}"></script>
+<script type="module" src="{{ asset('metronic_html_v8.2.9_demo1/demo1/assets/dashboard/js/shared/formatters.js') }}"></script>
+<!--end::Shared Utilities-->
+<!--begin::Page Scripts-->
+<script type="module" src="{{ asset('metronic_html_v8.2.9_demo1/demo1/assets/dashboard/js/admin/_scripts.js') }}"></script>
+<!--end::Page Scripts-->
+@stack('scripts')
+<!--end::Javascript-->
 
-<script src="{{ asset('assets/vendor/libs/jquery/jquery.js') }}"></script>
-<script src="{{ asset('assets/vendor/libs/popper/popper.js') }}"></script>
-<script src="{{ asset('assets/vendor/js/bootstrap.js') }}"></script>
-<script src="{{ asset('assets/vendor/libs/node-waves/node-waves.js') }}"></script>
-<script src="{{ asset('assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js') }}"></script>
-<script src="{{ asset('assets/vendor/js/menu.js') }}"></script>
-<script src="{{ asset('assets/js/helpers.js') }}"></script>
-<script src="{{ asset('assets/js/config.js') }}"></script>
-<script src="{{ asset('assets/js/main.js') }}"></script>
-
-@if(isset($useBuildComment) && $useBuildComment)
-<!-- endbuild -->
-@endif
-
-@if(isset($useApexCharts) && $useApexCharts)
-<!-- Vendors JS -->
-<script src="{{ asset('assets/vendor/libs/apex-charts/apexcharts.js') }}"></script>
-@endif
-
-@if(isset($pageScriptFile))
-<!-- Page JS -->
-<script src="{{ asset($pageScriptFile) }}"></script>
-@endif
-
-@if(isset($pageScript))
-{!! $pageScript !!}
-@endif
-
-@if(isset($showGitHubButton) && $showGitHubButton)
-<!-- Place this tag before closing body tag for github widget button. -->
-<script async="async" defer="defer" src="https://buttons.github.io/buttons.js"></script>
-@endif

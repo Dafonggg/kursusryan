@@ -1,0 +1,24 @@
+<!--begin::Head-->
+<base href="{{ asset('/') }}" />
+<title>@yield('title', 'Dashboard | Kursus Ryan Komputer')</title>
+<meta charset="utf-8" />
+<meta name="description" content="@yield('description', 'Student Dashboard for Multi-Role System')" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="csrf-token" content="{{ csrf_token() }}">
+<link rel="shortcut icon" href="{{ asset('metronic_html_v8.2.9_demo1/demo1/assets/media/logos/favicon.ico') }}" />
+<!--begin::Fonts(mandatory for all pages)-->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700" />
+<!--end::Fonts-->
+<!--begin::Global Stylesheets Bundle(mandatory for all pages)-->
+<link href="{{ asset('metronic_html_v8.2.9_demo1/demo1/assets/plugins/global/plugins.bundle.css') }}" rel="stylesheet" type="text/css" />
+<link href="{{ asset('metronic_html_v8.2.9_demo1/demo1/assets/css/style.bundle.css') }}" rel="stylesheet" type="text/css" />
+<!--end::Global Stylesheets Bundle-->
+<!--begin::Shared Styles-->
+<link href="{{ asset('metronic_html_v8.2.9_demo1/demo1/src/shared/styles/global.css') }}" rel="stylesheet" type="text/css" />
+<!--end::Shared Styles-->
+<!--begin::Page Styles-->
+<link href="{{ asset('metronic_html_v8.2.9_demo1/demo1/src/partialsStudent/_styles.css') }}" rel="stylesheet" type="text/css" />
+<!--end::Page Styles-->
+@stack('styles')
+<!--end::Head-->
+

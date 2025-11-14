@@ -15,9 +15,15 @@ class Checkrole
      */
     public function handle(Request $request, Closure $next, $roles): Response
     {
-        if(in_array($request->user()->role, $roles)){
-        return $next($request);
+        // Convert $roles to array if it's a string
+        $rolesArray = is_array($roles) ? $roles : explode(',', $roles);
+        
+        // Trim whitespace from each role
+        $rolesArray = array_map('trim', $rolesArray);
+        
+        if(in_array($request->user()->role, $rolesArray)){
+            return $next($request);
+        }
+        abort(403, 'Unauthorized action.');
     }
-    abort(403, 'Unauthorized action.');
-}
 }

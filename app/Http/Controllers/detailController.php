@@ -2,16 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Course;
 use Illuminate\Http\Request;
 
 class detailController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Display the course detail page.
      */
-    public function detail()
+    public function detail(Course $course)
     {
-        return view('landing.detail-kursus');
+        $course->load(['owner', 'materials', 'sessions', 'enrollments']);
+        return view('landing.detail-kursus', compact('course'));
     }
 
     /**

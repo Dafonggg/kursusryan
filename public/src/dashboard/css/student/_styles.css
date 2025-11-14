@@ -1,0 +1,116 @@
+/**
+ * Student Dashboard Styles
+ * Custom styles for student dashboard components
+ */
+
+/* Student Dashboard Specific Styles */
+.student-dashboard {
+    /* Dashboard container styles */
+}
+
+/* Learning Card */
+.student-learning-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.student-learning-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Session Card */
+.student-session-card {
+    border: 1px solid #e4e6ef;
+    border-radius: 0.475rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    transition: all 0.2s ease;
+}
+
+.student-session-card:hover {
+    border-color: #009ef7;
+    box-shadow: 0 2px 8px rgba(0, 158, 247, 0.1);
+}
+
+/* Progress Bar */
+.student-progress-bar {
+    height: 20px;
+    border-radius: 0.475rem;
+    background-color: #f1f1f2;
+}
+
+.student-progress-bar .progress-bar {
+    border-radius: 0.475rem;
+    font-weight: 600;
+    color: #fff;
+}
+
+/* Active Days Counter */
+.student-active-days-counter {
+    text-align: center;
+    padding: 2rem;
+}
+
+.student-active-days-counter .days-count {
+    font-size: 3rem;
+    font-weight: 700;
+    color: #009ef7;
+    margin-bottom: 1rem;
+}
+
+/* Payment Status Card */
+.student-payment-card {
+    border: 1px solid #e4e6ef;
+    border-radius: 0.475rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.student-payment-card.pending {
+    border-color: #ffc700;
+    background-color: #fffbf0;
+}
+
+.student-payment-card.paid {
+    border-color: #50cd89;
+    background-color: #f8fff9;
+}
+
+/* Certificate Table */
+.student-certificate-table {
+    font-size: 0.925rem;
+}
+
+.student-certificate-table th {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+    color: #6c757d;
+}
+
+/* Chat Shortcut */
+.student-chat-shortcut {
+    border: 1px solid #e4e6ef;
+    border-radius: 0.475rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    transition: all 0.2s ease;
+}
+
+.student-chat-shortcut:hover {
+    border-color: #009ef7;
+    box-shadow: 0 2px 8px rgba(0, 158, 247, 0.1);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .student-learning-card {
+        margin-bottom: 1rem;
+    }
+
+    .student-active-days-counter .days-count {
+        font-size: 2rem;
+    }
+}
+

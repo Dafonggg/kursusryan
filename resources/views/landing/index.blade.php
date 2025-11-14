@@ -10,40 +10,76 @@
     <div class="container">
         <div class="row justify-content-center">
 
-            <div class="col-lg-4 col-12 mb-4 mb-lg-0">
-                <div class="custom-block bg-white shadow-lg">
-                    <a href="{{ url('/detail-kursus') }}">
-                        <div class="d-flex">
-                            <div>
-                                <h5 class="mb-2">Web Design</h5>
-
-                                <p class="mb-0">When you search for free CSS templates, you will notice that TemplateMo is one of the best websites.</p>
+            @if($allCourses->isNotEmpty())
+                @php
+                    $featuredCourse = $allCourses->first();
+                @endphp
+                <div class="col-lg-4 col-12 mb-4 mb-lg-0">
+                    <div class="custom-block bg-white shadow-lg">
+                        <a href="{{ route('detail-kursus', $featuredCourse->slug) }}">
+                            <div class="d-flex">
+                                <div>
+                                    <h5 class="mb-2">{{ $featuredCourse->title }}</h5>
+                                    <p class="mb-0">{{ Str::limit($featuredCourse->description, 80) }}</p>
+                                </div>
+                                <span class="badge bg-design rounded-pill ms-auto">{{ $featuredCourse->enrollments->count() }}</span>
                             </div>
-
-                            <span class="badge bg-design rounded-pill ms-auto">14</span>
-                        </div>
-
-                        <img src="{{ asset('images/topics/undraw_Remote_design_team_re_urdx.png') }}" class="custom-block-image img-fluid" alt="">
-                    </a>
+                            <img src="{{ $featuredCourse->image ? asset('storage/' . $featuredCourse->image) : asset('images/topics/undraw_Remote_design_team_re_urdx.png') }}" 
+                                 class="custom-block-image img-fluid" 
+                                 alt="{{ $featuredCourse->title }}">
+                        </a>
+                    </div>
                 </div>
-            </div>
+            @else
+                <div class="col-lg-4 col-12 mb-4 mb-lg-0">
+                    <div class="custom-block bg-white shadow-lg">
+                        <a href="{{ route('daftar-kursus') }}">
+                            <div class="d-flex">
+                                <div>
+                                    <h5 class="mb-2">Kursus Tersedia</h5>
+                                    <p class="mb-0">Lihat semua kursus yang tersedia di halaman daftar kursus.</p>
+                                </div>
+                                <span class="badge bg-design rounded-pill ms-auto">0</span>
+                            </div>
+                            <img src="{{ asset('images/topics/undraw_Remote_design_team_re_urdx.png') }}" class="custom-block-image img-fluid" alt="">
+                        </a>
+                    </div>
+                </div>
+            @endif
 
             <div class="col-lg-6 col-12">
                 <div class="custom-block custom-block-overlay">
                     <div class="d-flex flex-column h-100">
-                        <img src="{{ asset('images/businesswoman-using-tablet-analysis.jpg') }}" class="custom-block-image img-fluid" alt="">
+                        @if($allCourses->isNotEmpty())
+                            @php
+                                $secondCourse = $allCourses->skip(1)->first() ?? $allCourses->first();
+                            @endphp
+                            <img src="{{ $secondCourse->image ? asset('storage/' . $secondCourse->image) : asset('images/businesswoman-using-tablet-analysis.jpg') }}" 
+                                 class="custom-block-image img-fluid" 
+                                 alt="{{ $secondCourse->title }}">
 
-                        <div class="custom-block-overlay-text d-flex">
-                            <div>
-                                <h5 class="text-white mb-2">Finance</h5>
-
-                                <p class="text-white">Topic Listing Template includes homepage, listing page, detail page, and contact page. You can feel free to edit and adapt for your CMS requirements.</p>
-
-                                <a href="{{ route('detail-kursus') }}" class="btn custom-btn mt-2 mt-lg-3">Learn More</a>
+                            <div class="custom-block-overlay-text d-flex">
+                                <div>
+                                    <h5 class="text-white mb-2">{{ $secondCourse->title }}</h5>
+                                    <p class="text-white">{{ Str::limit($secondCourse->description, 120) }}</p>
+                                    <a href="{{ route('detail-kursus', $secondCourse->slug) }}" class="btn custom-btn mt-2 mt-lg-3">Learn More</a>
+                                </div>
+                                <span class="badge bg-finance rounded-pill ms-auto">{{ $secondCourse->enrollments->count() }}</span>
                             </div>
+                        @else
+                            <img src="{{ asset('images/businesswoman-using-tablet-analysis.jpg') }}" 
+                                 class="custom-block-image img-fluid" 
+                                 alt="Kursus Komputer">
 
-                            <span class="badge bg-finance rounded-pill ms-auto">25</span>
-                        </div>
+                            <div class="custom-block-overlay-text d-flex">
+                                <div>
+                                    <h5 class="text-white mb-2">Kursus Komputer</h5>
+                                    <p class="text-white">Temukan berbagai kursus komputer yang sesuai dengan kebutuhan Anda. Dari dasar hingga tingkat lanjut, semua tersedia untuk Anda.</p>
+                                    <a href="{{ route('daftar-kursus') }}" class="btn custom-btn mt-2 mt-lg-3">Lihat Kursus</a>
+                                </div>
+                                <span class="badge bg-finance rounded-pill ms-auto">0</span>
+                            </div>
+                        @endif
 
                         <div class="social-share d-flex">
                             <p class="text-white me-4">Share:</p>
@@ -90,23 +126,19 @@
         <div class="row">
             <ul class="nav nav-tabs" id="myTab" role="tablist">
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="design-tab" data-bs-toggle="tab" data-bs-target="#design-tab-pane" type="button" role="tab" aria-controls="design-tab-pane" aria-selected="true">Design</button>
+                    <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all-tab-pane" type="button" role="tab" aria-controls="all-tab-pane" aria-selected="true">Semua</button>
                 </li>
 
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="marketing-tab" data-bs-toggle="tab" data-bs-target="#marketing-tab-pane" type="button" role="tab" aria-controls="marketing-tab-pane" aria-selected="false">Marketing</button>
+                    <button class="nav-link" id="online-tab" data-bs-toggle="tab" data-bs-target="#online-tab-pane" type="button" role="tab" aria-controls="online-tab-pane" aria-selected="false">Online</button>
                 </li>
 
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="finance-tab" data-bs-toggle="tab" data-bs-target="#finance-tab-pane" type="button" role="tab" aria-controls="finance-tab-pane" aria-selected="false">Finance</button>
+                    <button class="nav-link" id="offline-tab" data-bs-toggle="tab" data-bs-target="#offline-tab-pane" type="button" role="tab" aria-controls="offline-tab-pane" aria-selected="false">Offline</button>
                 </li>
 
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="music-tab" data-bs-toggle="tab" data-bs-target="#music-tab-pane" type="button" role="tab" aria-controls="music-tab-pane" aria-selected="false">Music</button>
-                </li>
-
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="education-tab" data-bs-toggle="tab" data-bs-target="#education-tab-pane" type="button" role="tab" aria-controls="education-tab-pane" aria-selected="false">Education</button>
+                    <button class="nav-link" id="hybrid-tab" data-bs-toggle="tab" data-bs-target="#hybrid-tab-pane" type="button" role="tab" aria-controls="hybrid-tab-pane" aria-selected="false">Hybrid</button>
                 </li>
             </ul>
         </div>
@@ -117,284 +149,135 @@
 
             <div class="col-12">
                 <div class="tab-content" id="myTabContent">
-                    <div class="tab-pane fade show active" id="design-tab-pane" role="tabpanel" aria-labelledby="design-tab" tabindex="0">
+                    {{-- Tab Semua Courses --}}
+                    <div class="tab-pane fade show active" id="all-tab-pane" role="tabpanel" aria-labelledby="all-tab" tabindex="0">
                         <div class="row">
-                            <div class="col-lg-4 col-md-6 col-12 mb-4 mb-lg-0">
-                                <div class="custom-block bg-white shadow-lg">
-                                    <a href="{{ url('/detail-kursus') }}">
-                                        <div class="d-flex">
-                                            <div>
-                                                <h5 class="mb-2">Web Design</h5>
-
-                                                <p class="mb-0">Topic Listing Template based on Bootstrap 5</p>
-                                            </div>
-
-                                            <span class="badge bg-design rounded-pill ms-auto">14</span>
-                                        </div>
-
-                                        <img src="{{ asset('images/topics/undraw_Remote_design_team_re_urdx.png') }}" class="custom-block-image img-fluid" alt="">
-                                    </a>
-                                </div>
-                            </div>
-
-                            <div class="col-lg-4 col-md-6 col-12 mb-4 mb-lg-0">
-                                <div class="custom-block bg-white shadow-lg">
-                                    <a href="{{ url('/detail-kursus') }}">
-                                        <div class="d-flex">
-                                            <div>
-                                                <h5 class="mb-2">Graphic</h5>
-
-                                                    <p class="mb-0">Lorem Ipsum dolor sit amet consectetur</p>
-                                            </div>
-
-                                            <span class="badge bg-design rounded-pill ms-auto">75</span>
-                                        </div>
-
-                                        <img src="{{ asset('images/topics/undraw_Redesign_feedback_re_jvm0.png') }}" class="custom-block-image img-fluid" alt="">
-                                    </a>
-                                </div>
-                            </div>
-
-                            <div class="col-lg-4 col-md-6 col-12">
-                                <div class="custom-block bg-white shadow-lg">
-                                    <a href="{{ url('/detail-kursus') }}">
-                                        <div class="d-flex">
-                                            <div>
-                                                <h5 class="mb-2">Logo Design</h5>
-
-                                                    <p class="mb-0">Lorem Ipsum dolor sit amet consectetur</p>
-                                            </div>
-
-                                            <span class="badge bg-design rounded-pill ms-auto">100</span>
-                                        </div>
-
-                                        <img src="{{ asset('images/topics/colleagues-working-cozy-office-medium-shot.png') }}" class="custom-block-image img-fluid" alt="">
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="tab-pane fade" id="marketing-tab-pane" role="tabpanel" aria-labelledby="marketing-tab" tabindex="0">
-                        <div class="row">
-                            <div class="col-lg-4 col-md-6 col-12 mb-4 mb-lg-3">
-                                    <div class="custom-block bg-white shadow-lg">
-                                        <a href="{{ url('/detail-kursus') }}">
-                                            <div class="d-flex">
-                                                <div>
-                                                    <h5 class="mb-2">Advertising</h5>
-
-                                                    <p class="mb-0">Lorem Ipsum dolor sit amet consectetur</p>
-                                                </div>
-
-                                                <span class="badge bg-advertising rounded-pill ms-auto">30</span>
-                                            </div>
-
-                                            <img src="{{ asset('images/topics/undraw_online_ad_re_ol62.png') }}" class="custom-block-image img-fluid" alt="">
-                                        </a>
-                                    </div>
-                                </div>
-
+                            @forelse($allCourses as $course)
                                 <div class="col-lg-4 col-md-6 col-12 mb-4 mb-lg-3">
                                     <div class="custom-block bg-white shadow-lg">
-                                        <a href="{{ url('/detail-kursus') }}">
+                                        <a href="{{ route('detail-kursus', $course->slug) }}">
                                             <div class="d-flex">
                                                 <div>
-                                                    <h5 class="mb-2">Video Content</h5>
-
-                                                    <p class="mb-0">Lorem Ipsum dolor sit amet consectetur</p>
+                                                    <h5 class="mb-2">{{ $course->title }}</h5>
+                                                    <p class="mb-0">{{ Str::limit($course->description, 80) }}</p>
                                                 </div>
-
-                                                <span class="badge bg-advertising rounded-pill ms-auto">65</span>
+                                                <span class="badge bg-design rounded-pill ms-auto">{{ $course->enrollments->count() }}</span>
                                             </div>
-
-                                            <img src="{{ asset('images/topics/undraw_Group_video_re_btu7.png') }}" class="custom-block-image img-fluid" alt="">
+                                            <img src="{{ $course->image ? asset('storage/' . $course->image) : asset('images/topics/undraw_Remote_design_team_re_urdx.png') }}" 
+                                                 class="custom-block-image img-fluid" 
+                                                 alt="{{ $course->title }}">
+                                            <div class="mt-2">
+                                                <small class="text-muted">Durasi: {{ $course->duration_months }} bulan</small>
+                                                <span class="badge bg-primary ms-2">Rp {{ number_format($course->price, 0, ',', '.') }}</span>
+                                            </div>
                                         </a>
                                     </div>
                                 </div>
+                            @empty
+                                <div class="col-12">
+                                    <p class="text-center">Belum ada kursus yang tersedia.</p>
+                                </div>
+                            @endforelse
+                        </div>
+                    </div>
 
-                                <div class="col-lg-4 col-md-6 col-12">
+                    {{-- Tab Online Courses --}}
+                    <div class="tab-pane fade" id="online-tab-pane" role="tabpanel" aria-labelledby="online-tab" tabindex="0">
+                        <div class="row">
+                            @forelse($onlineCourses as $course)
+                                <div class="col-lg-4 col-md-6 col-12 mb-4 mb-lg-3">
                                     <div class="custom-block bg-white shadow-lg">
-                                        <a href="{{ url('/detail-kursus') }}">
+                                        <a href="{{ route('detail-kursus', $course->slug) }}">
                                             <div class="d-flex">
                                                 <div>
-                                                    <h5 class="mb-2">Viral Tweet</h5>
-
-                                                    <p class="mb-0">Lorem Ipsum dolor sit amet consectetur</p>
+                                                    <h5 class="mb-2">{{ $course->title }}</h5>
+                                                    <p class="mb-0">{{ Str::limit($course->description, 80) }}</p>
                                                 </div>
-
-                                                <span class="badge bg-advertising rounded-pill ms-auto">50</span>
+                                                <span class="badge bg-success rounded-pill ms-auto">{{ $course->enrollments->count() }}</span>
                                             </div>
-
-                                            <img src="{{ asset('images/topics/undraw_viral_tweet_gndb.png') }}" class="custom-block-image img-fluid" alt="">
+                                            <img src="{{ $course->image ? asset('storage/' . $course->image) : asset('images/topics/undraw_Remote_design_team_re_urdx.png') }}" 
+                                                 class="custom-block-image img-fluid" 
+                                                 alt="{{ $course->title }}">
+                                            <div class="mt-2">
+                                                <small class="text-muted">Durasi: {{ $course->duration_months }} bulan</small>
+                                                <span class="badge bg-primary ms-2">Rp {{ number_format($course->price, 0, ',', '.') }}</span>
+                                            </div>
                                         </a>
                                     </div>
                                 </div>
-                            </div>
-                      </div>
-
-                    <div class="tab-pane fade" id="finance-tab-pane" role="tabpanel" aria-labelledby="finance-tab" tabindex="0">   <div class="row">
-                            <div class="col-lg-6 col-md-6 col-12 mb-4 mb-lg-0">
-                                <div class="custom-block bg-white shadow-lg">
-                                    <a href="{{ url('/detail-kursus') }}">
-                                        <div class="d-flex">
-                                            <div>
-                                                <h5 class="mb-2">Investment</h5>
-
-                                                <p class="mb-0">Lorem Ipsum dolor sit amet consectetur</p>
-                                            </div>
-
-                                            <span class="badge bg-finance rounded-pill ms-auto">30</span>
-                                        </div>
-
-                                        <img src="{{ asset('images/topics/undraw_Finance_re_gnv2.png') }}" class="custom-block-image img-fluid" alt="">
-                                    </a>
+                            @empty
+                                <div class="col-12">
+                                    <p class="text-center">Belum ada kursus online yang tersedia.</p>
                                 </div>
-                            </div>
+                            @endforelse
+                        </div>
+                    </div>
 
-                            <div class="col-lg-6 col-md-6 col-12">
-                                <div class="custom-block custom-block-overlay">
-                                    <div class="d-flex flex-column h-100">
-                                        <img src="{{ asset('images/businesswoman-using-tablet-analysis.jpg') }}" class="custom-block-image img-fluid" alt="">
-
-                                        <div class="custom-block-overlay-text d-flex">
-                                            <div>
-                                                <h5 class="text-white mb-2">Finance</h5>
-
-                                                <p class="text-white">Lorem ipsum dolor, sit amet consectetur adipisicing elit. Sint animi necessitatibus aperiam repudiandae nam omnis</p>
-
-                                                <a href="{{ route('detail-kursus') }}" class="btn custom-btn mt-2 mt-lg-3">Learn More</a>
+                    {{-- Tab Offline Courses --}}
+                    <div class="tab-pane fade" id="offline-tab-pane" role="tabpanel" aria-labelledby="offline-tab" tabindex="0">
+                        <div class="row">
+                            @forelse($offlineCourses as $course)
+                                <div class="col-lg-4 col-md-6 col-12 mb-4 mb-lg-3">
+                                    <div class="custom-block bg-white shadow-lg">
+                                        <a href="{{ route('detail-kursus', $course->slug) }}">
+                                            <div class="d-flex">
+                                                <div>
+                                                    <h5 class="mb-2">{{ $course->title }}</h5>
+                                                    <p class="mb-0">{{ Str::limit($course->description, 80) }}</p>
+                                                </div>
+                                                <span class="badge bg-warning rounded-pill ms-auto">{{ $course->enrollments->count() }}</span>
                                             </div>
-
-                                            <span class="badge bg-finance rounded-pill ms-auto">25</span>
-                                        </div>
-
-                                        <div class="social-share d-flex">
-                                            <p class="text-white me-4">Share:</p>
-
-                                            <ul class="social-icon">
-                                                <li class="social-icon-item">
-                                                    <a href="#" class="social-icon-link bi-twitter"></a>
-                                                </li>
-
-                                                <li class="social-icon-item">
-                                                    <a href="#" class="social-icon-link bi-facebook"></a>
-                                                </li>
-
-                                                <li class="social-icon-item">
-                                                    <a href="#" class="social-icon-link bi-pinterest"></a>
-                                                </li>
-                                            </ul>
-
-                                            <a href="#" class="custom-icon bi-bookmark ms-auto"></a>
-                                        </div>
-
-                                        <div class="section-overlay"></div>
+                                            <img src="{{ $course->image ? asset('storage/' . $course->image) : asset('images/topics/undraw_Remote_design_team_re_urdx.png') }}" 
+                                                 class="custom-block-image img-fluid" 
+                                                 alt="{{ $course->title }}">
+                                            <div class="mt-2">
+                                                <small class="text-muted">Durasi: {{ $course->duration_months }} bulan</small>
+                                                <span class="badge bg-primary ms-2">Rp {{ number_format($course->price, 0, ',', '.') }}</span>
+                                            </div>
+                                        </a>
                                     </div>
                                 </div>
-                            </div>
+                            @empty
+                                <div class="col-12">
+                                    <p class="text-center">Belum ada kursus offline yang tersedia.</p>
+                                </div>
+                            @endforelse
                         </div>
                     </div>
 
-                    <div class="tab-pane fade" id="music-tab-pane" role="tabpanel" aria-labelledby="music-tab" tabindex="0">
+                    {{-- Tab Hybrid Courses --}}
+                    <div class="tab-pane fade" id="hybrid-tab-pane" role="tabpanel" aria-labelledby="hybrid-tab" tabindex="0">
                         <div class="row">
-                            <div class="col-lg-4 col-md-6 col-12 mb-4 mb-lg-3">
-                                <div class="custom-block bg-white shadow-lg">
-                                    <a href="{{ url('/detail-kursus') }}">
-                                        <div class="d-flex">
-                                            <div>
-                                                <h5 class="mb-2">Composing Song</h5>
-
-                                                <p class="mb-0">Lorem Ipsum dolor sit amet consectetur</p>
+                            @forelse($hybridCourses as $course)
+                                <div class="col-lg-4 col-md-6 col-12 mb-4 mb-lg-3">
+                                    <div class="custom-block bg-white shadow-lg">
+                                        <a href="{{ route('detail-kursus', $course->slug) }}">
+                                            <div class="d-flex">
+                                                <div>
+                                                    <h5 class="mb-2">{{ $course->title }}</h5>
+                                                    <p class="mb-0">{{ Str::limit($course->description, 80) }}</p>
+                                                </div>
+                                                <span class="badge bg-info rounded-pill ms-auto">{{ $course->enrollments->count() }}</span>
                                             </div>
-
-                                            <span class="badge bg-music rounded-pill ms-auto">45</span>
-                                        </div>
-
-                                        <img src="{{ asset('images/topics/undraw_Compose_music_re_wpiw.png') }}" class="custom-block-image img-fluid" alt="">
-                                    </a>
-                                </div>
-                            </div>
-
-                            <div class="col-lg-4 col-md-6 col-12 mb-4 mb-lg-3">
-                                <div class="custom-block bg-white shadow-lg">
-                                    <a href="{{ url('/detail-kursus') }}">
-                                        <div class="d-flex">
-                                            <div>
-                                                <h5 class="mb-2">Online Music</h5>
-
-                                                <p class="mb-0">Lorem Ipsum dolor sit amet consectetur</p>
+                                            <img src="{{ $course->image ? asset('storage/' . $course->image) : asset('images/topics/undraw_Remote_design_team_re_urdx.png') }}" 
+                                                 class="custom-block-image img-fluid" 
+                                                 alt="{{ $course->title }}">
+                                            <div class="mt-2">
+                                                <small class="text-muted">Durasi: {{ $course->duration_months }} bulan</small>
+                                                <span class="badge bg-primary ms-2">Rp {{ number_format($course->price, 0, ',', '.') }}</span>
                                             </div>
-
-                                            <span class="badge bg-music rounded-pill ms-auto">45</span>
-                                        </div>
-
-                                        <img src="{{ asset('images/topics/undraw_happy_music_g6wc.png') }}" class="custom-block-image img-fluid" alt="">
-                                    </a>
+                                        </a>
+                                    </div>
                                 </div>
-                            </div>
-
-                            <div class="col-lg-4 col-md-6 col-12">
-                                <div class="custom-block bg-white shadow-lg">
-                                    <a href="{{ url('/detail-kursus') }}">
-                                        <div class="d-flex">
-                                            <div>
-                                                <h5 class="mb-2">Podcast</h5>
-
-                                                <p class="mb-0">Lorem Ipsum dolor sit amet consectetur</p>
-                                            </div>
-
-                                            <span class="badge bg-music rounded-pill ms-auto">20</span>
-                                        </div>
-
-                                        <img src="{{ asset('images/topics/undraw_Podcast_audience_re_4i5q.png') }}" class="custom-block-image img-fluid" alt="">
-                                    </a>
+                            @empty
+                                <div class="col-12">
+                                    <p class="text-center">Belum ada kursus hybrid yang tersedia.</p>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="tab-pane fade" id="education-tab-pane" role="tabpanel" aria-labelledby="education-tab" tabindex="0">
-                        <div class="row">
-                            <div class="col-lg-6 col-md-6 col-12 mb-4 mb-lg-3">
-                                <div class="custom-block bg-white shadow-lg">
-                                    <a href="{{ url('/detail-kursus') }}">
-                                        <div class="d-flex">
-                                            <div>
-                                                <h5 class="mb-2">Graduation</h5>
-
-                                                <p class="mb-0">Lorem Ipsum dolor sit amet consectetur</p>
-                                            </div>
-
-                                            <span class="badge bg-education rounded-pill ms-auto">80</span>
-                                        </div>
-
-                                        <img src="{{ asset('images/topics/undraw_Graduation_re_gthn.png') }}" class="custom-block-image img-fluid" alt="">
-                                    </a>
-                                </div>
-                            </div>
-
-                            <div class="col-lg-6 col-md-6 col-12">
-                                <div class="custom-block bg-white shadow-lg">
-                                    <a href="{{ url('/detail-kursus') }}">
-                                        <div class="d-flex">
-                                            <div>
-                                                <h5 class="mb-2">Educator</h5>
-
-                                                <p class="mb-0">Lorem Ipsum dolor sit amet consectetur</p>
-                                            </div>
-
-                                            <span class="badge bg-education rounded-pill ms-auto">75</span>
-                                        </div>
-
-                                        <img src="{{ asset('images/topics/undraw_Educator_re_ju47.png') }}" class="custom-block-image img-fluid" alt="">
-                                    </a>
-                                </div>
-                            </div>
+                            @endforelse
                         </div>
                     </div>
                 </div>
-
+            </div>
         </div>
     </div>
 </section>

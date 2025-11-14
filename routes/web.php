@@ -7,18 +7,26 @@ use App\Http\Controllers\listingController;
 use App\Http\Controllers\contactController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
-use App\Http\Controllers\admin\adminController;
-use App\Http\Controllers\admin\pesertaController;
-use App\Http\Controllers\admin\jadwalController;
-use App\Http\Controllers\admin\kursusController;
-use App\Http\Controllers\admin\materinController;
-use App\Http\Controllers\admin\katalogController;
-use App\Http\Controllers\admin\laporanController;
-use App\Http\Controllers\admin\analisisController;
-use App\Http\Controllers\admin\chatController;
-use App\Http\Controllers\sistem\SaccountController;
-use App\Http\Controllers\sistem\SconnectionsController;
-use App\Http\Controllers\sistem\SnotificationController;
+use App\Http\Controllers\Auth\GoogleAuthController;
+use App\Http\Controllers\Admin\AdminController;
+use App\Http\Controllers\Admin\CourseController;
+use App\Http\Controllers\Admin\CourseMaterialController;
+use App\Http\Controllers\Admin\SessionController;
+use App\Http\Controllers\Admin\PaymentController;
+use App\Http\Controllers\Admin\RescheduleController;
+use App\Http\Controllers\Admin\FinancialController;
+use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\ChatController;
+use App\Http\Controllers\Admin\AnalyticsController;
+use App\Http\Controllers\Admin\SettingsController;
+use App\Http\Controllers\Instuctor\InstructorController;
+use App\Http\Controllers\User\StudentController;
+use App\Http\Controllers\User\ActiveDaysCounterController;
+use App\Http\Controllers\User\CertificateReadyController;
+use App\Http\Controllers\User\ChatShortcutController;
+use App\Http\Controllers\User\ContinueLearningController;
+use App\Http\Controllers\User\NextSessionController;
+use App\Http\Controllers\User\PaymentStatusController;
 
 
 /*
@@ -34,51 +42,139 @@ use App\Http\Controllers\sistem\SnotificationController;
 
 // Landing Page Routes
 Route::get('/', [LandingController::class, 'index'])->name('home');
-Route::get('/detail-kursus', [detailController::class, 'detail'])->name('detail-kursus');
+Route::get('/detail-kursus/{course:slug}', [detailController::class, 'detail'])->name('detail-kursus');
 Route::get('/daftar-kursus', [listingController::class, 'listing'])->name('daftar-kursus');
 Route::get('/contact', [contactController::class, 'contact'])->name('contact');
 Route::get('/login', [LoginController::class, 'login'])->name('login');
-route::post('/login', [LoginController::class, 'loginPost'])->name('login.post');
-route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+Route::post('/login', [LoginController::class, 'loginPost'])->name('login.post');
+Route::post('/logout', [LoginController::class, 'logout'])->middleware('auth')->name('logout');
 Route::get('/register', [RegisterController::class, 'register'])->name('register');
-route::post('/register', [RegisterController::class, 'registerPost'])->name('register.post');
+Route::post('/register', [RegisterController::class, 'registerPost'])->name('register.post');
 
-// Customer Dashboard Routes
-Route::prefix('customer')->name('customer.')->group(function () {
-    Route::group(['middleware' => 'auth','checkrole:user'], function () {
-        route::get('/customer-dashboard', [customerController::class, 'customerDashboard'])->name('customer-dashboard');
+// Google OAuth Routes
+Route::get('/auth/google', [GoogleAuthController::class, 'redirectToGoogle'])->name('auth.google');
+Route::get('/auth/google/callback', [GoogleAuthController::class, 'handleGoogleCallback'])->name('auth.google.callback');
+
+
+// Admin Routes
+Route::prefix('admin')->name('admin.')->group(function () {
+    Route::group(['middleware' => 'auth','checkrole:admin'], function () {
+        Route::get('/dashboard', [AdminController::class, 'index'])->name('dashboard');
+        Route::get('/quick-actions', [AdminController::class, 'quickActions'])->name('quick-actions');
+        Route::get('/export-financial', [AdminController::class, 'exportFinancialData'])->name('export-financial');
+        
+        // Courses
+        Route::get('/courses', [CourseController::class, 'index'])->name('courses.index');
+        Route::get('/courses/create', [CourseController::class, 'create'])->name('courses.create');
+        Route::post('/courses', [CourseController::class, 'store'])->name('courses.store');
+        Route::get('/courses/{course:slug}/edit', [CourseController::class, 'edit'])->name('courses.edit');
+        Route::put('/courses/{course:slug}', [CourseController::class, 'update'])->name('courses.update');
+        Route::delete('/courses/{course:slug}', [CourseController::class, 'destroy'])->name('courses.destroy');
+        
+        // Course Materials
+        Route::get('/courses/{course:slug}/materials', [CourseMaterialController::class, 'index'])->name('materials.index');
+        Route::get('/courses/{course:slug}/materials/create', [CourseMaterialController::class, 'create'])->name('materials.create');
+        Route::post('/courses/{course:slug}/materials', [CourseMaterialController::class, 'store'])->name('materials.store');
+        Route::get('/courses/{course:slug}/materials/{material}/edit', [CourseMaterialController::class, 'edit'])->name('materials.edit');
+        Route::put('/courses/{course:slug}/materials/{material}', [CourseMaterialController::class, 'update'])->name('materials.update');
+        Route::delete('/courses/{course:slug}/materials/{material}', [CourseMaterialController::class, 'destroy'])->name('materials.destroy');
+        
+        // Sessions
+        Route::get('/sessions', [SessionController::class, 'index'])->name('sessions.index');
+        Route::get('/sessions/create', [SessionController::class, 'create'])->name('sessions.create');
+        Route::post('/sessions', [SessionController::class, 'store'])->name('sessions.store');
+        
+        // Payments
+        Route::get('/payments/pending', [PaymentController::class, 'pending'])->name('payments.pending');
+        Route::post('/payments/{payment}/verify', [PaymentController::class, 'verify'])->name('payments.verify');
+        
+        // Reschedules
+        Route::get('/reschedules', [RescheduleController::class, 'index'])->name('reschedules.index');
+        Route::get('/reschedules/pending', [RescheduleController::class, 'pending'])->name('reschedules.pending');
+        Route::post('/reschedules/{rescheduleRequest}/approve', [RescheduleController::class, 'approve'])->name('reschedules.approve');
+        Route::post('/reschedules/{rescheduleRequest}/reject', [RescheduleController::class, 'reject'])->name('reschedules.reject');
+        
+        // Financial
+        Route::get('/financial', [FinancialController::class, 'index'])->name('financial.index');
+        
+        // Users
+        Route::get('/users', [UserController::class, 'index'])->name('users.index');
+        Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
+        Route::post('/users', [UserController::class, 'store'])->name('users.store');
+        Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show');
+        Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
+        Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
+        Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
+        Route::post('/users/{user}/status', [UserController::class, 'updateStatus'])->name('users.update-status');
+        
+        // Chat
+        Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
+        Route::get('/chat/create', [ChatController::class, 'create'])->name('chat.create');
+        Route::post('/chat', [ChatController::class, 'store'])->name('chat.store');
+        Route::get('/chat/{conversation}', [ChatController::class, 'show'])->name('chat.show');
+        Route::post('/chat/{conversation}/message', [ChatController::class, 'sendMessage'])->name('chat.send-message');
+        Route::get('/chat/unread-count', [ChatController::class, 'unreadCount'])->name('chat.unread-count');
+        
+        // Analytics
+        Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics.index');
+        Route::get('/analytics/course/{course:slug}', [AnalyticsController::class, 'courseDetail'])->name('analytics.course-detail');
+        
+        // Settings
+        Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
+        Route::put('/settings', [SettingsController::class, 'update'])->name('settings.update');
+        Route::get('/settings/api', [SettingsController::class, 'getSettings'])->name('settings.api');
     });
 });
 
+// Instructor Routes
+Route::prefix('instructor')->name('instructor.')->middleware(['auth', 'checkrole:instructor'])->group(function () {
+    Route::get('/dashboard', [InstructorController::class, 'index'])->name('dashboard');
+    Route::get('/quick-actions', [InstructorController::class, 'quickActions'])->name('quick-actions');
+    Route::get('/sessions', [InstructorController::class, 'sessions'])->name('sessions');
+    Route::get('/courses', [InstructorController::class, 'courses'])->name('courses');
+    Route::get('/attendance', [InstructorController::class, 'attendance'])->name('attendance');
+    Route::get('/reschedule', [InstructorController::class, 'reschedule'])->name('reschedule');
+    Route::get('/messages', [InstructorController::class, 'messages'])->name('messages');
+    Route::get('/transactions', [InstructorController::class, 'transactions'])->name('transactions');
+    Route::get('/certificates', [InstructorController::class, 'certificates'])->name('certificates');
+    
+    // Quick Actions Routes
+    Route::get('/sessions/create', [InstructorController::class, 'createSession'])->name('sessions.create');
+    Route::post('/sessions', [InstructorController::class, 'storeSession'])->name('sessions.store');
+    Route::get('/attendance/{sessionId}/input', [InstructorController::class, 'inputAttendance'])->name('attendance.input');
+    Route::post('/attendance/{sessionId}', [InstructorController::class, 'storeAttendance'])->name('attendance.store');
+    Route::post('/reschedule/{requestId}/approve', [InstructorController::class, 'approveReschedule'])->name('reschedule.approve');
+    Route::post('/reschedule/{requestId}/reject', [InstructorController::class, 'rejectReschedule'])->name('reschedule.reject');
+    
+    // Materi Kursus Routes
+    Route::get('/courses/{courseSlug}/materials', [InstructorController::class, 'materials'])->name('materials');
+    Route::get('/courses/{courseSlug}/materials/create', [InstructorController::class, 'createMaterial'])->name('materials.create');
+    Route::post('/courses/{courseSlug}/materials', [InstructorController::class, 'storeMaterial'])->name('materials.store');
+    Route::get('/courses/{courseSlug}/materials/{material}/edit', [InstructorController::class, 'editMaterial'])->name('materials.edit');
+    Route::put('/courses/{courseSlug}/materials/{material}', [InstructorController::class, 'updateMaterial'])->name('materials.update');
+    Route::delete('/courses/{courseSlug}/materials/{material}', [InstructorController::class, 'destroyMaterial'])->name('materials.destroy');
+    
+    // Peserta Kursus Routes
+    Route::get('/courses/{courseSlug}/students', [InstructorController::class, 'students'])->name('students');
+    
+    // Sertifikat Routes
+    Route::post('/certificates/{enrollmentId}/generate', [InstructorController::class, 'generateCertificate'])->name('certificates.generate');
+});
 
-// Dashboard Routes
-Route::prefix('dashboard')->name('dashboard.')->group(function () {
-    Route::group(['middleware' => 'auth','checkrole:admin,user'], function () {
-        route::get('/admin-dashboard', [adminController::class, 'indexAdmin'])->name('admin-dashboard');
-    });
-    Route::get('/admin-dashboard', [adminController::class, 'indexAdmin'])->name('admin-dashboard');
-    Route::get('/peserta-kursus', [pesertaController::class, 'pesertaKursus'])->name('peserta-kursus');
-    Route::get('/jadwal-kursus', [jadwalController::class, 'jadwalKursus'])->name('jadwal-kursus');
-    Route::get('/kursus', [kursusController::class, 'kursus'])->name('kursus');
-    Route::post('/kursus', [kursusController::class, 'store'])->name('kursus.store');
-    Route::put('/kursus/{id}', [kursusController::class, 'update'])->name('kursus.update');
-    Route::delete('/kursus/{id}', [kursusController::class, 'destroy'])->name('kursus.destroy');
-    Route::get('/materi-kursus', [materinController::class, 'materiKursus'])->name('materi-kursus');
-    Route::get('/materi-kursus/create', [materinController::class, 'create'])->name('materi-kursus.create');
-    Route::post('/materi-kursus', [materinController::class, 'store'])->name('materi-kursus.store');
-    Route::get('/materi-kursus/{id}', [materinController::class, 'show'])->name('materi-kursus.show');
-    Route::get('/materi-kursus/{id}/edit', [materinController::class, 'edit'])->name('materi-kursus.edit');
-    Route::put('/materi-kursus/{id}', [materinController::class, 'update'])->name('materi-kursus.update');
-    Route::delete('/materi-kursus/{id}', [materinController::class, 'destroy'])->name('materi-kursus.destroy');
-    Route::get('/katalog-produk', [katalogController::class, 'katalogProduk'])->name('katalog-produk');
-    Route::post('/katalog-produk', [katalogController::class, 'store'])->name('katalog-produk.store');
-    Route::get('/katalog-produk/{id}', [katalogController::class, 'show'])->name('katalog-produk.show');
-    Route::put('/katalog-produk/{id}', [katalogController::class, 'update'])->name('katalog-produk.update');
-    Route::delete('/katalog-produk/{id}', [katalogController::class, 'destroy'])->name('katalog-produk.destroy');
-    Route::get('/laporan-keuangan', [laporanController::class, 'laporanKeuangan'])->name('laporan-keuangan');
-    Route::get('/analisis-peserta', [analisisController::class, 'analisisPeserta'])->name('analisis-peserta');
-    Route::get('/chat', [chatController::class, 'chat'])->name('chat');
-    Route::get('/account-sistem', [SaccountController::class, 'accountSistem'])->name('account-sistem');
-    Route::get('/connections-sistem', [SconnectionsController::class, 'connectionsSistem'])->name('connections-sistem');
-    Route::get('/notifications-sistem', [SnotificationController::class, 'notificationSistem'])->name('notifications-sistem');
+// Student Routes
+Route::prefix('student')->name('student.')->middleware(['auth', 'checkrole:student,user'])->group(function () {
+    Route::get('/dashboard', [StudentController::class, 'index'])->name('dashboard');
+    Route::get('/my-courses', [StudentController::class, 'myCourses'])->name('my-courses');
+    Route::get('/schedule', [StudentController::class, 'schedule'])->name('schedule');
+    Route::get('/payment', [StudentController::class, 'payment'])->name('payment');
+    Route::get('/certificate', [StudentController::class, 'certificate'])->name('certificate');
+    Route::get('/chat', [StudentController::class, 'chat'])->name('chat');
+    
+    // Dashboard Component Routes
+    Route::get('/active-days-counter', [ActiveDaysCounterController::class, 'index'])->name('active-days-counter');
+    Route::get('/certificate-ready', [CertificateReadyController::class, 'index'])->name('certificate-ready');
+    Route::get('/chat-shortcut', [ChatShortcutController::class, 'index'])->name('chat-shortcut');
+    Route::get('/continue-learning', [ContinueLearningController::class, 'index'])->name('continue-learning');
+    Route::get('/next-session', [NextSessionController::class, 'index'])->name('next-session');
+    Route::get('/payment-status', [PaymentStatusController::class, 'index'])->name('payment-status');
 });

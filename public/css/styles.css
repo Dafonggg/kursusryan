@@ -211,6 +211,35 @@ img {
   color: var(--first-color);
   text-decoration: none;
 }
+.login__social {
+  margin-bottom: 1rem;
+}
+.login__social-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 14px 2rem;
+  border-radius: 6px;
+  border: 2px solid #dadce0;
+  background-color: #fff;
+  color: #3c4043;
+  font-size: var(--small-font-size);
+  font-weight: var(--font-semi-bold);
+  text-decoration: none;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  margin-bottom: 0;
+}
+.login__social-button:hover {
+  background-color: #f8f9fa;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-color: #dadce0;
+}
+.login__social-button svg {
+  display: flex;
+  align-items: center;
+}
 
 /*=============== BREAKPOINTS ===============*/
 /* For small devices */

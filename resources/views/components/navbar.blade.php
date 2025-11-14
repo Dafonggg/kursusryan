@@ -66,10 +66,22 @@
                         <div class="user-dropdown-menu">
                             <div class="user-dropdown-menu-inner">
                                 <div class="user-dropdown-main-menu">
-                                    <a href="{{ route('dashboard.admin-dashboard') }}" class="user-dropdown-item">
-                                        <span class="material-symbols-outlined"> dashboard </span>
-                                        <span>Dashboard</span>
-                                    </a>
+                                    @if(Auth::user()->role == 'admin')
+                                        <a href="{{ route('admin.dashboard') }}" class="user-dropdown-item">
+                                            <span class="material-symbols-outlined"> dashboard </span>
+                                            <span>Admin Dashboard</span>
+                                        </a>
+                                    @elseif(Auth::user()->role == 'instructor')
+                                        <a href="{{ route('instructor.dashboard') }}" class="user-dropdown-item">
+                                            <span class="material-symbols-outlined"> dashboard </span>
+                                            <span>Instructor Dashboard</span>
+                                        </a>
+                                    @elseif(Auth::user()->role == 'student' || Auth::user()->role == 'user')
+                                        <a href="{{ route('student.dashboard') }}" class="user-dropdown-item">
+                                            <span class="material-symbols-outlined"> dashboard </span>
+                                            <span>Student Dashboard</span>
+                                        </a>
+                                    @endif
                                     <form action="{{ route('logout') }}" method="POST" class="user-dropdown-form">
                                         @csrf
                                         <button type="submit" class="user-dropdown-item">
@@ -121,10 +133,22 @@
                         <div class="user-dropdown-menu">
                             <div class="user-dropdown-menu-inner">
                                 <div class="user-dropdown-main-menu">
-                                    <a href="{{ route('dashboard.admin-dashboard') }}" class="user-dropdown-item">
-                                        <span class="material-symbols-outlined"> dashboard </span>
-                                        <span>Dashboard</span>
-                                    </a>
+                                    @if(Auth::user()->role == 'admin')
+                                        <a href="{{ route('admin.dashboard') }}" class="user-dropdown-item">
+                                            <span class="material-symbols-outlined"> dashboard </span>
+                                            <span>Admin Dashboard</span>
+                                        </a>
+                                    @elseif(Auth::user()->role == 'instructor')
+                                        <a href="{{ route('instructor.dashboard') }}" class="user-dropdown-item">
+                                            <span class="material-symbols-outlined"> dashboard </span>
+                                            <span>Instructor Dashboard</span>
+                                        </a>
+                                    @elseif(Auth::user()->role == 'student' || Auth::user()->role == 'user')
+                                        <a href="{{ route('student.dashboard') }}" class="user-dropdown-item">
+                                            <span class="material-symbols-outlined"> dashboard </span>
+                                            <span>Student Dashboard</span>
+                                        </a>
+                                    @endif
                                     <form action="{{ route('logout') }}" method="POST" class="user-dropdown-form">
                                         @csrf
                                         <button type="submit" class="user-dropdown-item">

@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Course;
+use App\Enums\CourseMode;
 use Illuminate\Http\Request;
 
 class LandingController extends Controller
@@ -11,7 +13,15 @@ class LandingController extends Controller
      */
     public function index()
     {
-        return view('landing.index');
+        // Ambil semua courses dengan relasi owner dan enrollments
+        $allCourses = Course::with(['owner', 'enrollments'])->latest()->get();
+        
+        // Kelompokkan berdasarkan mode
+        $onlineCourses = Course::with(['owner', 'enrollments'])->online()->latest()->get();
+        $offlineCourses = Course::with(['owner', 'enrollments'])->offline()->latest()->get();
+        $hybridCourses = Course::with(['owner', 'enrollments'])->hybrid()->latest()->get();
+        
+        return view('landing.index', compact('allCourses', 'onlineCourses', 'offlineCourses', 'hybridCourses'));
     }
 
     /**
@@ -22,7 +32,7 @@ class LandingController extends Controller
      */
     public function main()
     {
-        return view('landing.main');
+        return view('landing.main2');
     }
     
 

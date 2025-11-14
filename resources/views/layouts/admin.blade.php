@@ -1,88 +1,32 @@
 <!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="description" content="@yield('description', 'Admin Dashboard | Kursus Ryan Komputer')">
+        <meta name="csrf-token" content="{{ csrf_token() }}">
 
-<html
-  lang="en"
-  class="layout-menu-fixed layout-compact"
-  data-assets-path="{{ asset('assets/') }}"
-  data-template="vertical-menu-template-free">
-  <head>
-    <meta charset="utf-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
-    <meta name="robots" content="noindex, nofollow" />
+        <title>@yield('title', 'Admin Dashboard | Kursus Ryan Komputer')</title>
 
-    <title>@yield('title', 'Dashboard | Sistem Kursus Komputer')</title>
-
-    <meta name="description" content="" />
-
-    @php
-    $useBuildComment = isset($useBuildComment) ? $useBuildComment : false;
-    $useApexCharts = isset($useApexCharts) ? $useApexCharts : false;
-    $showGitHubButton = isset($showGitHubButton) ? $showGitHubButton : false;
-    @endphp
+        <!--begin::Admin Dashboard Styles-->
+        @include('admin.partials.style')
+        @stack('styles')
+        <!--end::Admin Dashboard Styles-->
+    </head>
     
-    @include('admin.partials.style')
-    
-    @stack('styles')
-  </head>
+    <body id="kt_app_body" data-kt-app-layout="dark-sidebar" data-kt-app-header-fixed="true" data-kt-app-sidebar-enabled="true" data-kt-app-sidebar-fixed="true" data-kt-app-sidebar-hoverable="true" data-kt-app-sidebar-push-header="true" data-kt-app-sidebar-push-toolbar="true" data-kt-app-sidebar-push-footer="true" data-kt-app-toolbar-enabled="true" class="app-default @yield('body-class', '')">
+        <!--begin::Theme mode setup on page load-->
+        <script>var defaultThemeMode = "light"; var themeMode; if ( document.documentElement ) { if ( document.documentElement.hasAttribute("data-bs-theme-mode")) { themeMode = document.documentElement.getAttribute("data-bs-theme-mode"); } else { if ( localStorage.getItem("data-bs-theme") !== null ) { themeMode = localStorage.getItem("data-bs-theme"); } else { themeMode = defaultThemeMode; } } if (themeMode === "system") { themeMode = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"; } document.documentElement.setAttribute("data-bs-theme", themeMode); }</script>
+        <!--end::Theme mode setup on page load-->
+        
+        <main>
+            @yield('content')
+        </main>
 
-  <body>
-    <!-- Layout wrapper -->
-    <div class="layout-wrapper layout-content-navbar">
-      <div class="layout-container">
-        @include('admin.partials.sidebar')
-
-        <!-- Layout container -->
-        <div class="layout-page">
-          @include('admin.partials.navbar', [
-            'showGitHubButton' => $showGitHubButton ?? false,
-            'showBilling' => $showBilling ?? false
-          ])
-
-          <!-- Content wrapper -->
-          <div class="content-wrapper">
-            <!-- Content -->
-            <div class="container-xxl flex-grow-1 container-p-y">
-              @yield('content')
-            </div>
-            <!-- / Content -->
-
-            @include('admin.partials.footer', [
-              'showFooterLinks' => $showFooterLinks ?? false
-            ])
-
-            <div class="content-backdrop fade"></div>
-          </div>
-          <!-- Content wrapper -->
-        </div>
-        <!-- / Layout page -->
-      </div>
-
-      <!-- Overlay -->
-      <div class="layout-overlay layout-menu-toggle"></div>
-    </div>
-    <!-- / Layout wrapper -->
-
-    @if(isset($showBuyNow) && $showBuyNow)
-    <div class="buy-now">
-      <a
-        href="https://themeselection.com/item/materio-dashboard-pro-bootstrap/"
-        target="_blank"
-        class="btn btn-danger btn-buy-now"
-        >Upgrade to Pro</a
-      >
-    </div>
-    @endif
-
-    @include('admin.partials.scripts', [
-      'useBuildComment' => $useBuildComment ?? false,
-      'useApexCharts' => $useApexCharts ?? false,
-      'showGitHubButton' => $showGitHubButton ?? false,
-      'pageScriptFile' => $pageScriptFile ?? null,
-      'pageScript' => $pageScript ?? null
-    ])
-    
-    @stack('scripts')
-  </body>
+        <!--begin::Admin Dashboard Scripts-->
+        @include('admin.partials.scripts')
+        @stack('scripts')
+        <!--end::Admin Dashboard Scripts-->
+    </body>
 </html>
+

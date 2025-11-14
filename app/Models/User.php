@@ -4,13 +4,14 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -23,7 +24,19 @@ class User extends Authenticatable
         'password',
         'role',
         'status',
+        'google_id',
     ];
+
+    public function profile()
+    {
+        return $this->hasOne(UserProfile::class);
+    }  
+
+    public function enrollments()
+    {
+        return $this->hasMany(Enrollment::class);
+    }  
+
 
     /**
      * The attributes that should be hidden for serialization.
