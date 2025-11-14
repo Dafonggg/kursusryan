@@ -34,175 +34,130 @@
                 <h3 class="mb-4">Daftar Kursus</h3>
             </div>
 
-            <div class="col-lg-8 col-12 mt-3 mx-auto">
-                <div class="custom-block custom-block-topics-listing bg-white shadow-lg mb-5">
-                    <div class="d-flex">
-                        <img src="{{ asset('images/topics/undraw_Remote_design_team_re_urdx.png') }}" class="custom-block-image img-fluid" alt="">
-
-                        <div class="custom-block-topics-listing-info d-flex">
-                            <div>
-                                <h5 class="mb-2">Web Design</h5>
-
-                                <p class="mb-0">Daftar Kursus includes home, listing, detail and contact pages. Feel free to modify this template for your custom websites.</p>
-
-                                <a href="{{ url('/detail-kursus') }}" class="btn custom-btn mt-3 mt-lg-4">Daftar</a>
+            <div class="col-lg-12 col-12 mt-3">
+                <!-- Search and Filter -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <form method="GET" action="{{ route('daftar-kursus') }}">
+                            <div class="input-group">
+                                <input type="text" name="search" class="form-control" placeholder="Cari kursus..." value="{{ request('search') }}">
+                                <button class="btn btn-primary" type="submit">Cari</button>
                             </div>
-
-                            <span class="badge bg-design rounded-pill ms-auto">14</span>
-                        </div>
+                        </form>
+                    </div>
+                    <div class="col-md-6">
+                        <form method="GET" action="{{ route('daftar-kursus') }}">
+                            <div class="input-group">
+                                <select name="mode" class="form-select" onchange="this.form.submit()">
+                                    <option value="">Semua Mode</option>
+                                    <option value="online" {{ request('mode') == 'online' ? 'selected' : '' }}>Online</option>
+                                    <option value="offline" {{ request('mode') == 'offline' ? 'selected' : '' }}>Offline</option>
+                                    <option value="hybrid" {{ request('mode') == 'hybrid' ? 'selected' : '' }}>Hybrid</option>
+                                </select>
+                            </div>
+                        </form>
                     </div>
                 </div>
 
-                <div class="custom-block custom-block-topics-listing bg-white shadow-lg mb-5">
-                    <div class="d-flex">
-                        <img src="{{ asset('images/topics/undraw_online_ad_re_ol62.png') }}" class="custom-block-image img-fluid" alt="">
-
-                        <div class="custom-block-topics-listing-info d-flex">
-                            <div>
-                                <h5 class="mb-2">Advertising</h5>
-
-                                <p class="mb-0">Visit TemplateMo website to download free CSS templates. Lorem ipsum dolor, sit amet consectetur adipisicing elit animi necessitatibus</p>
-
-                                <a href="{{ url('/detail-kursus') }}" class="btn custom-btn mt-3 mt-lg-4">Daftar</a>
-                            </div>
-
-                            <span class="badge bg-advertising rounded-pill ms-auto">30</span>
-                        </div>
+                @if($courses->isEmpty())
+                    <div class="alert alert-info text-center">
+                        <p>Tidak ada kursus yang ditemukan.</p>
                     </div>
-                </div>
+                @else
+                    @foreach($courses as $course)
+                        <div class="custom-block custom-block-topics-listing bg-white shadow-lg mb-5">
+                            <div class="d-flex">
+                                <img src="{{ $course->image ? asset('storage/' . $course->image) : asset('images/topics/undraw_Remote_design_team_re_urdx.png') }}" 
+                                     class="custom-block-image img-fluid" 
+                                     alt="{{ $course->title }}"
+                                     style="max-width: 200px; object-fit: cover;">
 
-                <div class="custom-block custom-block-topics-listing bg-white shadow-lg mb-5">
-                    <div class="d-flex">
-                        <img src="{{ asset('images/topics/undraw_Podcast_audience_re_4i5q.png') }}" class="custom-block-image img-fluid" alt="">
-
-                        <div class="custom-block-topics-listing-info d-flex">
-                            <div>
-                                <h5 class="mb-2">Podcast</h5>
-
-                                <p class="mb-0">Lorem ipsum dolor, sit amet consectetur adipisicing elit animi necessitatibus</p>
-
-                                <a href="{{ url('/detail-kursus') }}" class="btn custom-btn mt-3 mt-lg-4">Daftar</a>
+                                <div class="custom-block-topics-listing-info d-flex flex-grow-1">
+                                    <div class="flex-grow-1">
+                                        <h5 class="mb-2">{{ $course->title }}</h5>
+                                        <p class="mb-0">{{ Str::limit($course->description, 150) }}</p>
+                                        <div class="mt-2">
+                                            <span class="badge bg-primary">{{ ucfirst($course->mode->value) }}</span>
+                                            <span class="badge bg-success">Rp {{ number_format($course->price, 0, ',', '.') }}</span>
+                                        </div>
+                                        <div class="mt-3">
+                                            <a href="{{ route('detail-kursus', $course->slug) }}" class="btn custom-btn me-2">Detail</a>
+                                            <form action="{{ route('cart.add', $course->id) }}" method="POST" class="d-inline">
+                                                @csrf
+                                                <button type="submit" class="btn btn-outline-primary">Tambah ke Keranjang</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                    <span class="badge bg-design rounded-pill ms-auto">{{ $course->enrollments->count() }}</span>
+                                </div>
                             </div>
-
-                            <span class="badge bg-music rounded-pill ms-auto">20</span>
                         </div>
+                    @endforeach
+
+                    <!-- Pagination -->
+                    <div class="d-flex justify-content-center">
+                        {{ $courses->links() }}
                     </div>
-                </div>
+                @endif
             </div>
 
-            <div class="col-lg-12 col-12">
-                <nav aria-label="Page navigation example">
-                    <ul class="pagination justify-content-center mb-0">
-                        <li class="page-item">
-                            <a class="page-link" href="#" aria-label="Previous">
-                                <span aria-hidden="true">Prev</span>
-                            </a>
-                        </li>
-
-                        <li class="page-item active" aria-current="page">
-                            <a class="page-link" href="#">1</a>
-                        </li>
-                        
-                        <li class="page-item">
-                            <a class="page-link" href="#">2</a>
-                        </li>
-                        
-                        <li class="page-item">
-                            <a class="page-link" href="#">3</a>
-                        </li>
-
-                        <li class="page-item">
-                            <a class="page-link" href="#">4</a>
-                        </li>
-
-                        <li class="page-item">
-                            <a class="page-link" href="#">5</a>
-                        </li>
-                        
-                        <li class="page-item">
-                            <a class="page-link" href="#" aria-label="Next">
-                                <span aria-hidden="true">Next</span>
-                            </a>
-                        </li>
-                    </ul>
-                </nav>
-            </div>
 
         </div>
     </div>
 </section>
 
 
+@if($courses->isNotEmpty())
 <section class="section-padding section-bg">
     <div class="container">
         <div class="row">
-
             <div class="col-lg-12 col-12">
-                <h3 class="mb-4">Trending Kursus</h3>
+                <h3 class="mb-4">Kursus Populer</h3>
             </div>
 
-            <div class="col-lg-6 col-md-6 col-12 mt-3 mb-4 mb-lg-0">
-                <div class="custom-block bg-white shadow-lg">
-                    <a href="{{ url('/detail-kursus') }}">
-                        <div class="d-flex">
-                            <div>
-                                <h5 class="mb-2">Investment</h5>
+            @php
+                $popularCourses = $courses->take(2);
+            @endphp
 
-                                <p class="mb-0">Lorem Ipsum dolor sit amet consectetur</p>
-                            </div>
+            @foreach($popularCourses as $popularCourse)
+                <div class="col-lg-6 col-md-6 col-12 mt-3 {{ $loop->first ? 'mb-4 mb-lg-0' : 'mt-lg-3' }}">
+                    <div class="custom-block {{ $loop->last ? 'custom-block-overlay' : 'bg-white shadow-lg' }}">
+                        <a href="{{ route('detail-kursus', $popularCourse->slug) }}">
+                            @if($loop->last)
+                                <div class="d-flex flex-column h-100">
+                                    <img src="{{ $popularCourse->image ? asset('storage/' . $popularCourse->image) : asset('images/businesswoman-using-tablet-analysis.jpg') }}" 
+                                         class="custom-block-image img-fluid" 
+                                         alt="{{ $popularCourse->title }}">
 
-                            <span class="badge bg-finance rounded-pill ms-auto">30</span>
-                        </div>
-
-                        <img src="{{ asset('images/topics/undraw_Finance_re_gnv2.png') }}" class="custom-block-image img-fluid" alt="">
-                    </a>
-                </div>
-            </div>
-
-            <div class="col-lg-6 col-md-6 col-12 mt-lg-3">
-                <div class="custom-block custom-block-overlay">
-                    <div class="d-flex flex-column h-100">
-                        <img src="{{ asset('images/businesswoman-using-tablet-analysis.jpg') }}" class="custom-block-image img-fluid" alt="">
-
-                        <div class="custom-block-overlay-text d-flex">
-                            <div>
-                                <h5 class="text-white mb-2">Finance</h5>
-
-                                <p class="text-white">Lorem ipsum dolor, sit amet consectetur adipisicing elit. Sint animi necessitatibus aperiam repudiandae nam omnis</p>
-
-                                <a href="{{ route('detail-kursus') }}" class="btn custom-btn mt-2 mt-lg-3">Daftar</a>
-                            </div>
-
-                            <span class="badge bg-finance rounded-pill ms-auto">25</span>
-                        </div>
-
-                        <div class="social-share d-flex">
-                            <p class="text-white me-4">Share:</p>
-
-                            <ul class="social-icon">
-                                <li class="social-icon-item">
-                                    <a href="#" class="social-icon-link bi-twitter"></a>
-                                </li>
-
-                                <li class="social-icon-item">
-                                    <a href="#" class="social-icon-link bi-facebook"></a>
-                                </li>
-
-                                <li class="social-icon-item">
-                                    <a href="#" class="social-icon-link bi-pinterest"></a>
-                                </li>
-                            </ul>
-
-                            <a href="#" class="custom-icon bi-bookmark ms-auto"></a>
-                        </div>
-
-                        <div class="section-overlay"></div>
+                                    <div class="custom-block-overlay-text d-flex">
+                                        <div>
+                                            <h5 class="text-white mb-2">{{ $popularCourse->title }}</h5>
+                                            <p class="text-white">{{ Str::limit($popularCourse->description, 100) }}</p>
+                                            <a href="{{ route('detail-kursus', $popularCourse->slug) }}" class="btn custom-btn mt-2 mt-lg-3">Daftar</a>
+                                        </div>
+                                        <span class="badge bg-finance rounded-pill ms-auto">{{ $popularCourse->enrollments->count() }}</span>
+                                    </div>
+                                    <div class="section-overlay"></div>
+                                </div>
+                            @else
+                                <div class="d-flex">
+                                    <div>
+                                        <h5 class="mb-2">{{ $popularCourse->title }}</h5>
+                                        <p class="mb-0">{{ Str::limit($popularCourse->description, 80) }}</p>
+                                    </div>
+                                    <span class="badge bg-finance rounded-pill ms-auto">{{ $popularCourse->enrollments->count() }}</span>
+                                </div>
+                                <img src="{{ $popularCourse->image ? asset('storage/' . $popularCourse->image) : asset('images/topics/undraw_Finance_re_gnv2.png') }}" 
+                                     class="custom-block-image img-fluid" 
+                                     alt="{{ $popularCourse->title }}">
+                            @endif
+                        </a>
                     </div>
                 </div>
-            </div>
-
+            @endforeach
         </div>
     </div>
 </section>
+@endif
 @endsection
 

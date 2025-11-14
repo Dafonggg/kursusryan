@@ -5,6 +5,8 @@ use App\Http\Controllers\LandingController;
 use App\Http\Controllers\detailController;
 use App\Http\Controllers\listingController;
 use App\Http\Controllers\contactController;
+use App\Http\Controllers\CartController;
+use App\Http\Controllers\EnrollmentController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\GoogleAuthController;
@@ -45,6 +47,19 @@ Route::get('/', [LandingController::class, 'index'])->name('home');
 Route::get('/detail-kursus/{course:slug}', [detailController::class, 'detail'])->name('detail-kursus');
 Route::get('/daftar-kursus', [listingController::class, 'listing'])->name('daftar-kursus');
 Route::get('/contact', [contactController::class, 'contact'])->name('contact');
+
+// Cart Routes
+Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
+Route::post('/cart/add/{courseId}', [CartController::class, 'add'])->name('cart.add');
+Route::delete('/cart/remove/{courseId}', [CartController::class, 'remove'])->name('cart.remove');
+Route::post('/cart/clear', [CartController::class, 'clear'])->name('cart.clear');
+Route::get('/cart/count', [CartController::class, 'count'])->name('cart.count');
+
+// Enrollment Routes
+Route::get('/checkout', [EnrollmentController::class, 'checkout'])->name('checkout')->middleware('auth');
+Route::post('/enrollment', [EnrollmentController::class, 'store'])->name('enrollment.store')->middleware('auth');
+Route::get('/enrollment/complete-data', [EnrollmentController::class, 'completeData'])->name('enrollment.complete-data')->middleware('auth');
+Route::post('/enrollment/complete-data', [EnrollmentController::class, 'storeCompleteData'])->name('enrollment.store-complete-data')->middleware('auth');
 Route::get('/login', [LoginController::class, 'login'])->name('login');
 Route::post('/login', [LoginController::class, 'loginPost'])->name('login.post');
 Route::post('/logout', [LoginController::class, 'logout'])->middleware('auth')->name('logout');
@@ -169,6 +184,17 @@ Route::prefix('student')->name('student.')->middleware(['auth', 'checkrole:stude
     Route::get('/payment', [StudentController::class, 'payment'])->name('payment');
     Route::get('/certificate', [StudentController::class, 'certificate'])->name('certificate');
     Route::get('/chat', [StudentController::class, 'chat'])->name('chat');
+    
+    // Materials Routes (route tanpa parameter harus diletakkan setelah route dengan parameter)
+    Route::get('/materials/{courseSlug?}', [StudentController::class, 'materials'])->name('materials');
+    
+    // Reschedule Routes
+    Route::get('/reschedule', [StudentController::class, 'reschedule'])->name('reschedule');
+    Route::post('/reschedule', [StudentController::class, 'storeReschedule'])->name('reschedule.store');
+    
+    // Profile Routes
+    Route::get('/profile', [StudentController::class, 'profile'])->name('profile');
+    Route::post('/profile', [StudentController::class, 'updateProfile'])->name('profile.update');
     
     // Dashboard Component Routes
     Route::get('/active-days-counter', [ActiveDaysCounterController::class, 'index'])->name('active-days-counter');

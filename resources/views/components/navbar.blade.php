@@ -8,8 +8,16 @@
         <!-- Cart Button, Bookmark Button and Hamburger Menu for Mobile -->
         <div class="d-lg-none d-flex align-items-center gap-2">
             <a href="{{ url('/cart') }}" 
-               class="bg-[#81d0c7] hover:bg-[#4f98a4] text-white font-semibold px-3 py-2 rounded-full transition-all duration-300 transform hover:scale-105 no-underline d-flex align-items-center justify-content-center">
+               class="bg-[#81d0c7] hover:bg-[#4f98a4] text-white font-semibold px-3 py-2 rounded-full transition-all duration-300 transform hover:scale-105 no-underline d-flex align-items-center justify-content-center position-relative">
                 <span class="material-symbols-outlined" style="font-size: 30px;">shopping_cart</span>
+                @php
+                    $cartCount = count(session('cart', []));
+                @endphp
+                @if($cartCount > 0)
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 10px;">
+                        {{ $cartCount }}
+                    </span>
+                @endif
             </a>
             <a href="#" 
                class="bg-[#81d0c7] hover:bg-[#4f98a4] text-white font-semibold px-3 py-2 rounded-full transition-all duration-300 transform hover:scale-105 no-underline d-flex align-items-center justify-content-center">
@@ -114,8 +122,16 @@
                 @auth
                     <!-- Cart Button -->
                     <a href="{{ url('/cart') }}" 
-                       class="bg-[#81d0c7] hover:bg-[#4f98a4] text-white font-semibold px-4 py-2.5 rounded-full transition-all duration-300 transform hover:scale-105 no-underline d-flex align-items-center justify-content-center" style="min-width: 44px; height: 44px;">
+                       class="bg-[#81d0c7] hover:bg-[#4f98a4] text-white font-semibold px-4 py-2.5 rounded-full transition-all duration-300 transform hover:scale-105 no-underline d-flex align-items-center justify-content-center position-relative" style="min-width: 44px; height: 44px;">
                         <span class="material-symbols-outlined" style="font-size: 20px;">shopping_cart</span>
+                        @php
+                            $cartCount = count(session('cart', []));
+                        @endphp
+                        @if($cartCount > 0)
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 10px;">
+                                {{ $cartCount }}
+                            </span>
+                        @endif
                     </a>
                     <!-- Bookmark Button -->
                     <a href="#" 
@@ -163,8 +179,16 @@
                 @else
                     <!-- Cart Button -->
                     <a href="{{ url('/cart') }}" 
-                       class="bg-[#81d0c7] hover:bg-[#4f98a4] text-white font-semibold px-4 py-2.5 rounded-full transition-all duration-300 transform hover:scale-105 no-underline d-flex align-items-center justify-content-center" style="min-width: 44px; height: 44px;">
+                       class="bg-[#81d0c7] hover:bg-[#4f98a4] text-white font-semibold px-4 py-2.5 rounded-full transition-all duration-300 transform hover:scale-105 no-underline d-flex align-items-center justify-content-center position-relative" style="min-width: 44px; height: 44px;">
                         <span class="material-symbols-outlined" style="font-size: 20px;">shopping_cart</span>
+                        @php
+                            $cartCount = count(session('cart', []));
+                        @endphp
+                        @if($cartCount > 0)
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 10px;">
+                                {{ $cartCount }}
+                            </span>
+                        @endif
                     </a>
                     <!-- Bookmark Button -->
                     <a href="#" 

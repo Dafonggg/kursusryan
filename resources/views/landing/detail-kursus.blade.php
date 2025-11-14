@@ -11,23 +11,33 @@
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a href="{{ url('/') }}">Homepage</a></li>
-
-                        <li class="breadcrumb-item active" aria-current="page">Web Design</li>
+                        <li class="breadcrumb-item"><a href="{{ route('daftar-kursus') }}">Daftar Kursus</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">{{ $course->title }}</li>
                     </ol>
                 </nav>
 
-                <h2 class="text-white">Introduction to <br> Web Design 101</h2>
+                <h2 class="text-white">{{ $course->title }}</h2>
+                <p class="text-white mt-3">{{ Str::limit($course->description, 100) }}</p>
+
+                <div class="d-flex align-items-center mt-4">
+                    <span class="badge bg-primary me-2">{{ ucfirst($course->mode->value) }}</span>
+                    <span class="text-white fs-5 fw-bold">Rp {{ number_format($course->price, 0, ',', '.') }}</span>
+                </div>
 
                 <div class="d-flex align-items-center mt-5">
-                    <a href="#topics-detail" class="btn custom-btn custom-border-btn smoothscroll me-4">Read More</a>
-
-                    <a href="#top" class="custom-icon bi-bookmark smoothscroll"></a>
+                    <form action="{{ route('cart.add', $course->id) }}" method="POST" class="me-3">
+                        @csrf
+                        <button type="submit" class="btn custom-btn custom-border-btn">Tambah ke Keranjang</button>
+                    </form>
+                    <a href="#enrollment" class="btn custom-btn smoothscroll">Daftar Sekarang</a>
                 </div>
             </div>
 
             <div class="col-lg-5 col-12">
                 <div class="topics-detail-block bg-white shadow-lg">
-                    <img src="{{ asset('images/topics/undraw_Remote_design_team_re_urdx.png') }}" class="topics-detail-block-image img-fluid">
+                    <img src="{{ $course->image ? asset('storage/' . $course->image) : asset('images/topics/undraw_Remote_design_team_re_urdx.png') }}" 
+                         class="topics-detail-block-image img-fluid"
+                         alt="{{ $course->title }}">
                 </div>
             </div>
 
@@ -41,27 +51,25 @@
         <div class="row">
 
             <div class="col-lg-8 col-12 m-auto">
-                <h3 class="mb-4">Introduction to Web Design</h3>
+                <h3 class="mb-4">{{ $course->title }}</h3>
 
-                <p>So how can you stand out, do something unique and interesting, build an online business, and get paid enough to change life. Please visit TemplateMo website to download free website templates.</p>
-
-                <p><strong>There are so many ways to make money online</strong>. Below are several platforms you can use to find success. Keep in mind that there is no one path everyone can take. If that were the case, everyone would have a million dollars.</p>
-
-                <blockquote>
-                    Freelancing your skills isn't going to make you a millionaire overnight.
-                </blockquote>
+                <p>{{ $course->description }}</p>
 
                 <div class="row my-4">
-                    <div class="col-lg-6 col-md-6 col-12">
-                        <img src="{{ asset('images/businesswoman-using-tablet-analysis.jpg') }}" class="topics-detail-block-image img-fluid">
+                    <div class="col-md-6">
+                        <h5>Informasi Kursus</h5>
+                        <ul class="list-unstyled">
+                            <li><strong>Mode:</strong> {{ ucfirst($course->mode->value) }}</li>
+                            <li><strong>Durasi:</strong> {{ $course->duration_months }} Bulan</li>
+                            <li><strong>Harga:</strong> Rp {{ number_format($course->price, 0, ',', '.') }}</li>
+                            <li><strong>Peserta:</strong> {{ $course->enrollments->count() }} orang</li>
+                        </ul>
                     </div>
-
-                    <div class="col-lg-6 col-md-6 col-12 mt-4 mt-lg-0 mt-md-0">
-                        <img src="{{ asset('images/colleagues-working-cozy-office-medium-shot.jpg') }}" class="topics-detail-block-image img-fluid">
+                    <div class="col-md-6">
+                        <h5>Instruktur</h5>
+                        <p>{{ $course->owner->name ?? 'Tidak ada instruktur' }}</p>
                     </div>
                 </div>
-
-                <p>Most people start with freelancing skills they already have as a side hustle to build up income. This extra cash can be used for a vacation, to boost up savings, investing, build business.</p>
             </div>
 
         </div>
@@ -69,26 +77,37 @@
 </section>
 
 
-<section class="section-padding section-bg">
+<section class="section-padding section-bg" id="enrollment">
     <div class="container">
         <div class="row justify-content-center">
-
-            <div class="col-lg-5 col-12">
-                <img src="{{ asset('images/rear-view-young-college-student.jpg') }}" class="newsletter-image img-fluid" alt="">
+            <div class="col-lg-8 col-12">
+                <div class="custom-block bg-white shadow-lg p-4">
+                    <h3 class="mb-4 text-center">Form Pendaftaran</h3>
+                    
+                    @if(!Auth::check())
+                        <div class="alert alert-warning">
+                            <p class="mb-2">Silakan <a href="{{ route('login') }}">login</a> terlebih dahulu untuk mendaftar.</p>
+                            <p class="mb-0">Belum punya akun? <a href="{{ route('register') }}">Daftar sekarang</a></p>
+                        </div>
+                    @else
+                        <form action="{{ route('cart.add', $course->id) }}" method="POST">
+                            @csrf
+                            <div class="mb-3">
+                                <label class="form-label">Kursus</label>
+                                <input type="text" class="form-control" value="{{ $course->title }}" readonly>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Harga</label>
+                                <input type="text" class="form-control" value="Rp {{ number_format($course->price, 0, ',', '.') }}" readonly>
+                            </div>
+                            <div class="text-center">
+                                <button type="submit" class="btn custom-btn">Tambah ke Keranjang</button>
+                                <a href="{{ route('cart.index') }}" class="btn btn-outline-primary ms-2">Lihat Keranjang</a>
+                            </div>
+                        </form>
+                    @endif
+                </div>
             </div>
-
-            <div class="col-lg-5 col-12 subscribe-form-wrap d-flex justify-content-center align-items-center">
-                <form class="custom-form subscribe-form" action="#" method="post" role="form">
-                    <h4 class="mb-4 pb-2">Get Newsletter</h4>
-
-                    <input type="email" name="subscribe-email" id="subscribe-email" pattern="[^ @]*@[^ @]*" class="form-control" placeholder="Email Address" required="">
-
-                    <div class="col-lg-12 col-12">
-                        <button type="submit" class="form-control">Subscribe</button>
-                    </div>
-                </form>
-            </div>
-
         </div>
     </div>
 </section>

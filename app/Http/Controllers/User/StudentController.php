@@ -15,6 +15,7 @@ use App\Models\Payment;
 use App\Models\Certificate;
 use App\Enums\RescheduleStatus;
 use App\Enums\EnrollmentStatus;
+use App\Enums\PaymentStatus;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
@@ -22,73 +23,26 @@ class StudentController extends Controller
 {
     public function index()
     {
-        // Data dummy untuk Continue Learning
-        $continue_learning = (object)[
-            'course_id' => 1,
-            'course_name' => 'Laravel Advanced',
-            'course_image' => asset('metronic_html_v8.2.9_demo1/demo1/assets/media/stock/600x400/img-1.jpg'),
-            'lesson_name' => 'Database Migration & Seeder',
-            'lesson_id' => 5,
-            'progress_percentage' => 65,
-        ];
-
-        // Data dummy untuk Next Session
-        $next_session = (object)[
-            'session_id' => 1,
-            'course_name' => 'React Fundamentals',
-            'course_image' => asset('metronic_html_v8.2.9_demo1/demo1/assets/media/stock/600x400/img-2.jpg'),
-            'session_name' => 'Sesi 4: Hooks & Context API',
-            'session_date' => Carbon::now()->addDays(2)->format('d M Y'),
-            'session_time' => '14:00 - 16:00 WIB',
-            'session_mode' => 'Online',
-            'session_location' => 'Zoom Meeting',
-            'session_link' => 'https://zoom.us/j/123456789',
-        ];
-
-        // Data dummy untuk Active Days Counter
-        $active_days = (object)[
-            'remaining_days' => 45,
-            'active_days_percentage' => 75,
-            'enrollment_date' => Carbon::now()->subDays(15)->format('d M Y'),
-            'expiry_date' => Carbon::now()->addDays(45)->format('d M Y'),
-        ];
-
-        // Data dummy untuk Payment Status
-        $payment_status = (object)[
-            'payment_id' => 1,
-            'payment_amount' => 'Rp 2.500.000',
-            'payment_status' => 'Paid',
-            'payment_status_badge' => 'success',
-            'payment_date' => Carbon::now()->subDays(5)->format('d M Y'),
-            'payment_method' => 'Bank Transfer',
-            'invoice_url' => '#',
-        ];
-
-        // Data dummy untuk Certificate Ready
-        $ready_certificates = [
-            (object)[
-                'course_name' => 'Laravel Advanced',
-                'course_category' => 'Web Development',
-                'course_image' => asset('metronic_html_v8.2.9_demo1/demo1/assets/media/stock/600x400/img-1.jpg'),
-                'certificate_date' => Carbon::now()->subDays(10)->format('d M Y'),
-                'certificate_url' => '#',
-            ],
-            (object)[
-                'course_name' => 'Vue.js Mastery',
-                'course_category' => 'Frontend Development',
-                'course_image' => asset('metronic_html_v8.2.9_demo1/demo1/assets/media/stock/600x400/img-3.jpg'),
-                'certificate_date' => Carbon::now()->subDays(20)->format('d M Y'),
-                'certificate_url' => '#',
-            ],
-        ];
+        $user = Auth::user();
+        
+        // Data real untuk Continue Learning
+        $continue_learning = $this->getContinueLearning($user);
+        
+        // Data real untuk Next Session
+        $next_session = $this->getNextSession($user);
+        
+        // Data real untuk Active Days Counter
+        $active_days = $this->getActiveDays($user);
+        
+        // Data real untuk Payment Status
+        $payment_status = $this->getPaymentStatus($user);
+        
+        // Data real untuk Certificate Ready
+        $ready_certificates = $this->getReadyCertificates($user);
         $ready_certificates_count = count($ready_certificates);
-
-        // Data dummy untuk Chat Shortcut
-        $chat_shortcut = (object)[
-            'instructor_id' => 1,
-            'instructor_name' => 'Budi Santoso',
-            'instructor_avatar' => asset('metronic_html_v8.2.9_demo1/demo1/assets/media/avatars/300-3.jpg'),
-        ];
+        
+        // Data real untuk Chat Shortcut
+        $chat_shortcut = $this->getChatShortcut($user);
 
         return view('student.dashboard.index', compact(
             'continue_learning',
@@ -103,25 +57,13 @@ class StudentController extends Controller
 
     public function myCourses()
     {
-        // Data dummy untuk Continue Learning
-        $continue_learning = (object)[
-            'course_id' => 1,
-            'course_name' => 'Laravel Advanced',
-            'course_image' => asset('metronic_html_v8.2.9_demo1/demo1/assets/media/stock/600x400/img-1.jpg'),
-            'lesson_name' => 'Database Migration & Seeder',
-            'lesson_id' => 5,
-            'progress_percentage' => 65,
-        ];
-
-        // Data dummy untuk Active Days Counter
-        $active_days = (object)[
-            'remaining_days' => 45,
-            'active_days_percentage' => 75,
-            'enrollment_date' => Carbon::now()->subDays(15)->format('d M Y'),
-            'expiry_date' => Carbon::now()->addDays(45)->format('d M Y'),
-        ];
+        $user = Auth::user();
         
-
+        // Data real untuk Continue Learning
+        $continue_learning = $this->getContinueLearning($user);
+        
+        // Data real untuk Active Days Counter
+        $active_days = $this->getActiveDays($user);
 
         return view('student.dashboard.index', compact(
             'continue_learning',
@@ -131,18 +73,10 @@ class StudentController extends Controller
 
     public function schedule()
     {
-        // Data dummy untuk Next Session
-        $next_session = (object)[
-            'session_id' => 1,
-            'course_name' => 'React Fundamentals',
-            'course_image' => asset('metronic_html_v8.2.9_demo1/demo1/assets/media/stock/600x400/img-2.jpg'),
-            'session_name' => 'Sesi 4: Hooks & Context API',
-            'session_date' => Carbon::now()->addDays(2)->format('d M Y'),
-            'session_time' => '14:00 - 16:00 WIB',
-            'session_mode' => 'Online',
-            'session_location' => 'Zoom Meeting',
-            'session_link' => 'https://zoom.us/j/123456789',
-        ];
+        $user = Auth::user();
+        
+        // Data real untuk Next Session
+        $next_session = $this->getNextSession($user);
 
         return view('student.dashboard.index', compact(
             'next_session'
@@ -151,16 +85,10 @@ class StudentController extends Controller
 
     public function payment()
     {
-        // Data dummy untuk Payment Status
-        $payment_status = (object)[
-            'payment_id' => 1,
-            'payment_amount' => 'Rp 2.500.000',
-            'payment_status' => 'Paid',
-            'payment_status_badge' => 'success',
-            'payment_date' => Carbon::now()->subDays(5)->format('d M Y'),
-            'payment_method' => 'Bank Transfer',
-            'invoice_url' => '#',
-        ];
+        $user = Auth::user();
+        
+        // Data real untuk Payment Status
+        $payment_status = $this->getPaymentStatus($user);
 
         return view('student.dashboard.index', compact(
             'payment_status'
@@ -169,23 +97,10 @@ class StudentController extends Controller
 
     public function certificate()
     {
-        // Data dummy untuk Certificate Ready
-        $ready_certificates = [
-            (object)[
-                'course_name' => 'Laravel Advanced',
-                'course_category' => 'Web Development',
-                'course_image' => asset('metronic_html_v8.2.9_demo1/demo1/assets/media/stock/600x400/img-1.jpg'),
-                'certificate_date' => Carbon::now()->subDays(10)->format('d M Y'),
-                'certificate_url' => '#',
-            ],
-            (object)[
-                'course_name' => 'Vue.js Mastery',
-                'course_category' => 'Frontend Development',
-                'course_image' => asset('metronic_html_v8.2.9_demo1/demo1/assets/media/stock/600x400/img-3.jpg'),
-                'certificate_date' => Carbon::now()->subDays(20)->format('d M Y'),
-                'certificate_url' => '#',
-            ],
-        ];
+        $user = Auth::user();
+        
+        // Data real untuk Certificate Ready
+        $ready_certificates = $this->getReadyCertificates($user);
         $ready_certificates_count = count($ready_certificates);
 
         return view('student.dashboard.index', compact(
@@ -196,12 +111,10 @@ class StudentController extends Controller
 
     public function chat()
     {
-        // Data dummy untuk Chat Shortcut
-        $chat_shortcut = (object)[
-            'instructor_id' => 1,
-            'instructor_name' => 'Budi Santoso',
-            'instructor_avatar' => asset('metronic_html_v8.2.9_demo1/demo1/assets/media/avatars/300-3.jpg'),
-        ];
+        $user = Auth::user();
+        
+        // Data real untuk Chat Shortcut
+        $chat_shortcut = $this->getChatShortcut($user);
 
         return view('student.dashboard.index', compact(
             'chat_shortcut'
@@ -305,6 +218,204 @@ class StudentController extends Controller
         ]);
         
         return redirect()->route('student.reschedule')->with('success', 'Permintaan reschedule berhasil diajukan.');
+    }
+
+    /**
+     * Helper: Get Continue Learning Data
+     */
+    private function getContinueLearning($user)
+    {
+        $activeEnrollment = Enrollment::where('user_id', $user->id)
+            ->where('status', EnrollmentStatus::Active)
+            ->with(['course.materials' => function($query) {
+                $query->orderBy('order');
+            }])
+            ->latest('started_at')
+            ->first();
+        
+        if ($activeEnrollment && $activeEnrollment->course) {
+            $course = $activeEnrollment->course;
+            $materials = $course->materials;
+            $totalMaterials = $materials->count();
+            
+            // Ambil materi pertama (atau terakhir jika ada tracking)
+            $lastMaterial = $materials->first();
+            
+            // Hitung progress sederhana (bisa disesuaikan dengan sistem tracking yang lebih detail)
+            $progressPercentage = $totalMaterials > 0 ? min(100, (int)(($totalMaterials / max($totalMaterials, 1)) * 50)) : 0;
+            
+            if ($lastMaterial) {
+                return (object)[
+                    'course_id' => $course->id,
+                    'course_name' => $course->title,
+                    'course_image' => $course->image ? Storage::url($course->image) : asset('metronic_html_v8.2.9_demo1/demo1/assets/media/stock/600x400/img-1.jpg'),
+                    'lesson_name' => $lastMaterial->title,
+                    'lesson_id' => $lastMaterial->id,
+                    'progress_percentage' => $progressPercentage,
+                ];
+            }
+        }
+        
+        return null;
+    }
+
+    /**
+     * Helper: Get Next Session Data
+     */
+    private function getNextSession($user)
+    {
+        $nextSession = CourseSession::whereHas('course.enrollments', function($query) use ($user) {
+                $query->where('user_id', $user->id)
+                      ->where('status', EnrollmentStatus::Active);
+            })
+            ->where('scheduled_at', '>=', now())
+            ->with(['course'])
+            ->orderBy('scheduled_at')
+            ->first();
+        
+        if ($nextSession) {
+            $course = $nextSession->course;
+            $startTime = $nextSession->scheduled_at;
+            $endTime = $startTime->copy()->addMinutes($nextSession->duration_minutes ?? 120);
+            
+            $isOnline = in_array(strtolower($nextSession->mode ?? ''), ['online', 'hybrid']);
+            
+            return (object)[
+                'session_id' => $nextSession->id,
+                'course_name' => $course->title,
+                'course_image' => $course->image ? Storage::url($course->image) : asset('metronic_html_v8.2.9_demo1/demo1/assets/media/stock/600x400/img-2.jpg'),
+                'session_name' => $nextSession->title,
+                'session_date' => $startTime->format('d M Y'),
+                'session_time' => $startTime->format('H:i') . ' - ' . $endTime->format('H:i') . ' WIB',
+                'session_mode' => ucfirst($nextSession->mode ?? 'Online'),
+                'session_location' => $nextSession->location ?? ($isOnline ? 'Zoom Meeting' : 'Kelas Offline'),
+                'session_link' => $nextSession->meeting_url ?? '#',
+            ];
+        }
+        
+        return null;
+    }
+
+    /**
+     * Helper: Get Active Days Data
+     */
+    private function getActiveDays($user)
+    {
+        $activeEnrollment = Enrollment::where('user_id', $user->id)
+            ->where('status', EnrollmentStatus::Active)
+            ->latest('started_at')
+            ->first();
+        
+        if ($activeEnrollment && $activeEnrollment->expires_at) {
+            $remainingDays = max(0, now()->diffInDays($activeEnrollment->expires_at, false));
+            $totalDays = $activeEnrollment->started_at && $activeEnrollment->expires_at 
+                ? $activeEnrollment->started_at->diffInDays($activeEnrollment->expires_at) 
+                : 90;
+            $usedDays = $activeEnrollment->started_at 
+                ? max(0, now()->diffInDays($activeEnrollment->started_at)) 
+                : 0;
+            $activeDaysPercentage = $totalDays > 0 ? min(100, (int)(($usedDays / $totalDays) * 100)) : 0;
+            
+            return (object)[
+                'remaining_days' => $remainingDays,
+                'active_days_percentage' => $activeDaysPercentage,
+                'enrollment_date' => $activeEnrollment->started_at ? $activeEnrollment->started_at->format('d M Y') : '-',
+                'expiry_date' => $activeEnrollment->expires_at->format('d M Y'),
+            ];
+        }
+        
+        return null;
+    }
+
+    /**
+     * Helper: Get Payment Status Data
+     */
+    private function getPaymentStatus($user)
+    {
+        $lastPayment = Payment::whereHas('enrollment', function($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })
+            ->latest('created_at')
+            ->first();
+        
+        if ($lastPayment) {
+            $statusBadge = match($lastPayment->status->value) {
+                'paid' => 'success',
+                'pending' => 'warning',
+                'failed' => 'danger',
+                'refunded' => 'info',
+                default => 'secondary'
+            };
+            
+            return (object)[
+                'payment_id' => $lastPayment->id,
+                'payment_amount' => 'Rp ' . number_format($lastPayment->amount, 0, ',', '.'),
+                'payment_status' => ucfirst($lastPayment->status->value),
+                'payment_status_badge' => $statusBadge,
+                'payment_date' => $lastPayment->paid_at ? $lastPayment->paid_at->format('d M Y') : $lastPayment->created_at->format('d M Y'),
+                'payment_method' => ucfirst($lastPayment->method->value ?? 'Transfer'),
+                'invoice_url' => route('student.payment') . '?payment=' . $lastPayment->id,
+            ];
+        }
+        
+        return null;
+    }
+
+    /**
+     * Helper: Get Ready Certificates Data
+     */
+    private function getReadyCertificates($user)
+    {
+        $certificates = Certificate::whereHas('enrollment', function($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })
+            ->with(['enrollment.course'])
+            ->latest('issued_at')
+            ->get();
+        
+        $ready_certificates = [];
+        foreach ($certificates as $cert) {
+            $course = $cert->enrollment->course;
+            $ready_certificates[] = (object)[
+                'course_name' => $course->title,
+                'course_category' => 'Kursus', // Bisa disesuaikan jika ada kategori
+                'course_image' => $course->image ? Storage::url($course->image) : asset('metronic_html_v8.2.9_demo1/demo1/assets/media/stock/600x400/img-1.jpg'),
+                'certificate_date' => $cert->issued_at ? $cert->issued_at->format('d M Y') : '-',
+                'certificate_url' => $cert->file_path ? Storage::url($cert->file_path) : '#',
+            ];
+        }
+        
+        return $ready_certificates;
+    }
+
+    /**
+     * Helper: Get Chat Shortcut Data
+     */
+    private function getChatShortcut($user)
+    {
+        $activeEnrollment = Enrollment::where('user_id', $user->id)
+            ->where('status', EnrollmentStatus::Active)
+            ->with('course')
+            ->latest('started_at')
+            ->first();
+        
+        if ($activeEnrollment && $activeEnrollment->course && $activeEnrollment->course->owner_id) {
+            $instructor = User::find($activeEnrollment->course->owner_id);
+            if ($instructor) {
+                $profile = $instructor->profile;
+                $avatar = $profile && $profile->photo_path 
+                    ? Storage::url($profile->photo_path) 
+                    : asset('metronic_html_v8.2.9_demo1/demo1/assets/media/avatars/300-3.jpg');
+                
+                return (object)[
+                    'instructor_id' => $instructor->id,
+                    'instructor_name' => $instructor->name,
+                    'instructor_avatar' => $avatar,
+                ];
+            }
+        }
+        
+        return null;
     }
 
     /**

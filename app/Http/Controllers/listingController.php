@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Course;
 use Illuminate\Http\Request;
 
 class listingController extends Controller
@@ -9,9 +10,23 @@ class listingController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function listing()
+    public function listing(Request $request)
     {
-        return view('landing.daftar-kursus');
+        $query = Course::with(['owner', 'enrollments']);
+        
+        // Filter by mode if provided
+        if ($request->has('mode') && $request->mode) {
+            $query->where('mode', $request->mode);
+        }
+        
+        // Search functionality
+        if ($request->has('search') && $request->search) {
+            $query->search($request->search);
+        }
+        
+        $courses = $query->latest()->paginate(12);
+        
+        return view('landing.daftar-kursus', compact('courses'));
     }
 
     /**

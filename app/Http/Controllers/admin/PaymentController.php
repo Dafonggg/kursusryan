@@ -33,8 +33,15 @@ class PaymentController extends Controller
 
         if ($request->action === 'approve') {
             $payment->markAsPaid();
+            
+            // Activate enrollment
+            $enrollment = $payment->enrollment;
+            if ($enrollment && $enrollment->status === \App\Enums\EnrollmentStatus::Pending) {
+                $enrollment->activate();
+            }
+            
             return redirect()->route('admin.payments.pending')
-                ->with('success', 'Pembayaran berhasil diverifikasi!');
+                ->with('success', 'Pembayaran berhasil diverifikasi dan enrollment diaktifkan!');
         } else {
             $payment->update([
                 'status' => PaymentStatus::Failed,

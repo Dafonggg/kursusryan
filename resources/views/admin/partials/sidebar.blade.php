@@ -62,6 +62,19 @@
 							<span class="menu-title">Reschedule</span>
 						</a>
 					</div>
+					<div class="menu-item {{ request()->routeIs('admin.payments.*') ? 'here show' : '' }}">
+						<a class="menu-link {{ request()->routeIs('admin.payments.*') ? 'active' : '' }}" href="{{ route('admin.payments.pending') }}">
+							<span class="menu-icon">
+								<i class="ki-duotone ki-credit-cart fs-2">
+									<span class="path1"></span>
+									<span class="path2"></span>
+									<span class="path3"></span>
+									<span class="path4"></span>
+								</i>
+							</span>
+							<span class="menu-title">Verifikasi Pembayaran</span>
+						</a>
+					</div>
 					<div class="menu-item {{ request()->routeIs('admin.users.*') ? 'here show' : '' }}">
 						<a class="menu-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}" href="{{ route('admin.users.index') }}">
 							<span class="menu-icon">
