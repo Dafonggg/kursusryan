@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Course;
+use App\Models\Enrollment;
+use App\Enums\EnrollmentStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Auth;
 
 class CartController extends Controller
 {
@@ -16,24 +19,47 @@ class CartController extends Controller
         $cart = Session::get('cart', []);
         $courses = [];
         $total = 0;
+        $updatedCart = [];
+        $removedCourses = [];
 
         foreach ($cart as $courseId => $quantity) {
             $course = Course::find($courseId);
-            if ($course) {
-                $courses[] = [
-                    'id' => $course->id,
-                    'slug' => $course->slug,
-                    'title' => $course->title,
-                    'price' => $course->price,
-                    'image' => $course->image,
-                    'quantity' => $quantity,
-                    'subtotal' => $course->price * $quantity,
-                ];
-                $total += $course->price * $quantity;
+            if (!$course) continue;
+
+            // Check if user is already enrolled (only check active or pending status)
+            if (Auth::check()) {
+                $existingEnrollment = Enrollment::where('user_id', Auth::id())
+                    ->where('course_id', $course->id)
+                    ->whereIn('status', [EnrollmentStatus::Active, EnrollmentStatus::Pending])
+                    ->first();
+
+                if ($existingEnrollment) {
+                    // Remove from cart if already enrolled
+                    $removedCourses[] = $course->title;
+                    continue;
+                }
             }
+
+            // Keep course in cart if not enrolled
+            $updatedCart[$courseId] = $quantity;
+            $courses[] = [
+                'id' => $course->id,
+                'slug' => $course->slug,
+                'title' => $course->title,
+                'price' => $course->price,
+                'image' => $course->image,
+                'quantity' => $quantity,
+                'subtotal' => $course->price * $quantity,
+            ];
+            $total += $course->price * $quantity;
         }
 
-        return view('landing.cart', compact('courses', 'total'));
+        // Update cart to remove already enrolled courses
+        if (!empty($removedCourses)) {
+            Session::put('cart', $updatedCart);
+        }
+
+        return view('landing.cart', compact('courses', 'total', 'removedCourses'));
     }
 
     /**
@@ -52,6 +78,18 @@ class CartController extends Controller
         // Check if course already in cart
         if (isset($cart[$course->id])) {
             return redirect()->back()->with('error', 'Kursus sudah ada di keranjang!');
+        }
+
+        // Check if user is already enrolled (only check active or pending status)
+        if (Auth::check()) {
+            $existingEnrollment = Enrollment::where('user_id', Auth::id())
+                ->where('course_id', $course->id)
+                ->whereIn('status', [EnrollmentStatus::Active, EnrollmentStatus::Pending])
+                ->first();
+
+            if ($existingEnrollment) {
+                return redirect()->back()->with('error', 'Anda sudah terdaftar di kursus ini!');
+            }
         }
 
         $cart[$course->id] = 1;

@@ -85,18 +85,27 @@ class EnrollmentController extends Controller
 
             // Create enrollments and payments for each course
             $enrollmentsCreated = 0;
+            $alreadyEnrolledCourses = [];
+            $updatedCart = [];
+
             foreach ($cart as $courseId => $quantity) {
                 $course = Course::find($courseId);
                 if (!$course) continue;
 
-                // Check if user already enrolled
+                // Check if user already enrolled (only check active or pending status)
                 $existingEnrollment = Enrollment::where('user_id', $user->id)
                     ->where('course_id', $course->id)
+                    ->whereIn('status', [EnrollmentStatus::Active, EnrollmentStatus::Pending])
                     ->first();
 
                 if ($existingEnrollment) {
+                    // Track already enrolled courses
+                    $alreadyEnrolledCourses[] = $course->title;
                     continue; // Skip if already enrolled
                 }
+
+                // Keep course in cart if not enrolled
+                $updatedCart[$courseId] = $quantity;
 
                 // Create enrollment
                 $enrollment = Enrollment::create([
@@ -112,9 +121,14 @@ class EnrollmentController extends Controller
                     'method' => PaymentMethod::from($request->payment_method),
                     'status' => PaymentStatus::Pending,
                     'meta' => [
+                        'proof' => $paymentProofPath,
+                        'proof_image' => $paymentProofPath,
+                        'bukti' => $paymentProofPath,
                         'payment_proof_path' => $paymentProofPath,
+                        'bank' => $request->bank_name ?? null,
                         'bank_name' => $request->bank_name ?? null,
                         'account_number' => $request->account_number ?? null,
+                        'no_rekening' => $request->account_number ?? null,
                         'account_name' => $request->account_name ?? null,
                     ],
                 ]);
@@ -122,17 +136,45 @@ class EnrollmentController extends Controller
                 $enrollmentsCreated++;
             }
 
+            // Update cart to remove already enrolled courses
+            Session::put('cart', $updatedCart);
+
             if ($enrollmentsCreated === 0) {
                 // Delete payment proof if no enrollments created
                 Storage::disk('public')->delete($paymentProofPath);
-                return redirect()->route('cart.index')->with('error', 'Anda sudah terdaftar di semua kursus yang dipilih.');
+                $errorMessage = 'Anda sudah terdaftar di semua kursus yang dipilih.';
+                if (!empty($alreadyEnrolledCourses)) {
+                    $errorMessage = 'Anda sudah terdaftar di kursus: ' . implode(', ', $alreadyEnrolledCourses);
+                }
+                return redirect()->route('cart.index')->with('error', $errorMessage);
             }
 
-            // Clear cart
-            Session::forget('cart');
+            // Show warning if some courses were already enrolled
+            $warningMessage = '';
+            if (!empty($alreadyEnrolledCourses)) {
+                $warningMessage = 'Beberapa kursus sudah terdaftar dan dilewati: ' . implode(', ', $alreadyEnrolledCourses);
+            }
+
+            // Clear cart only if all courses in cart were processed
+            // If all courses were successfully enrolled, clear the cart
+            // If some courses were already enrolled, update cart with remaining courses
+            if (count($cart) === $enrollmentsCreated) {
+                // All courses were successfully enrolled, clear cart
+                Session::forget('cart');
+            } else {
+                // Some courses were already enrolled, update cart with remaining courses
+                Session::put('cart', $updatedCart);
+            }
+
+            $successMessage = 'Pembayaran berhasil dikirim! Silakan lengkapi data diri Anda.';
+            if ($warningMessage) {
+                return redirect()->route('enrollment.complete-data')
+                    ->with('success', $successMessage)
+                    ->with('warning', $warningMessage);
+            }
 
             return redirect()->route('enrollment.complete-data')
-                ->with('success', 'Pembayaran berhasil dikirim! Silakan lengkapi data diri Anda.');
+                ->with('success', $successMessage);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return redirect()->back()->withErrors($e->errors())->withInput();
         } catch (\Exception $e) {

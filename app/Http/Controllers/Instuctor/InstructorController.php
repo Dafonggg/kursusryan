@@ -13,6 +13,8 @@ use App\Models\Payment;
 use App\Models\Certificate;
 use App\Models\Message;
 use App\Models\Conversation;
+use App\Models\User;
+use App\Models\UserProfile;
 use App\Enums\RescheduleStatus;
 use App\Enums\AttendanceStatus;
 use App\Enums\EnrollmentStatus;
@@ -70,11 +72,16 @@ class InstructorController extends Controller
         ));
     }
 
-    public function sessions()
+    public function sessions(Request $request)
     {
         // Data untuk halaman Sesi Saya (berisi my-courses + today-sessions)
         $my_courses = $this->getMyCourses();
         $my_courses_count = count($my_courses);
+        
+        // Filter berdasarkan tanggal jika ada
+        $dateFilter = $request->get('date');
+        $sessions = $this->getSessionsByDate($dateFilter);
+        
         $today_sessions = $this->getTodaySessions();
         $today_sessions_count = count($today_sessions);
 
@@ -82,8 +89,83 @@ class InstructorController extends Controller
             'my_courses',
             'my_courses_count',
             'today_sessions',
-            'today_sessions_count'
+            'today_sessions_count',
+            'sessions',
+            'dateFilter'
         ));
+    }
+
+    /**
+     * Get sessions by date filter
+     */
+    private function getSessionsByDate($dateFilter = null)
+    {
+        $instructorId = Auth::id();
+        $query = CourseSession::where('instructor_id', $instructorId)
+            ->with(['course', 'attendances'])
+            ->orderBy('scheduled_at', 'desc');
+        
+        if ($dateFilter) {
+            $query->whereDate('scheduled_at', $dateFilter);
+        }
+        
+        $sessions = $query->get();
+        
+        return $sessions->map(function ($session) {
+            $startTime = Carbon::parse($session->scheduled_at)->format('H:i');
+            $endTime = Carbon::parse($session->scheduled_at)
+                ->addMinutes($session->duration_minutes ?? 90)
+                ->format('H:i');
+            
+            $now = Carbon::now();
+            $sessionTime = Carbon::parse($session->scheduled_at);
+            $sessionEnd = $sessionTime->copy()->addMinutes($session->duration_minutes ?? 90);
+            
+            $status = 'Upcoming';
+            $badge = 'warning';
+            if ($now->between($sessionTime, $sessionEnd)) {
+                $status = 'Ongoing';
+                $badge = 'success';
+            } elseif ($now->greaterThanOrEqualTo($sessionEnd)) {
+                // Gunakan greaterThanOrEqualTo agar status langsung berubah ke Completed saat waktu sama
+                $status = 'Completed';
+                $badge = 'info';
+            }
+            
+            // Ambil semua peserta yang terdaftar di kursus ini
+            $enrollments = Enrollment::where('course_id', $session->course_id)
+                ->where('status', EnrollmentStatus::Active)
+                ->get();
+            
+            $participantCount = $enrollments->count();
+            
+            // Cek apakah semua peserta sudah punya absensi
+            $attendanceUserIds = $session->attendances->pluck('user_id')->unique();
+            $enrollmentUserIds = $enrollments->pluck('user_id')->unique();
+            
+            // Absensi lengkap jika semua peserta sudah punya absensi
+            // Cek apakah ada peserta yang belum punya absensi
+            $missingAttendance = $enrollmentUserIds->diff($attendanceUserIds);
+            $attendanceComplete = $missingAttendance->isEmpty() && $participantCount > 0;
+            
+            return (object)[
+                'id' => $session->id,
+                'course_name' => $session->course->title ?? 'N/A',
+                'title' => $session->title ?? 'Sesi ' . $session->id,
+                'session_date' => Carbon::parse($session->scheduled_at)->format('d M Y'),
+                'session_time' => $startTime . ' - ' . $endTime,
+                'session_duration' => ($session->duration_minutes ?? 90) . ' menit',
+                'participant_count' => $participantCount,
+                'session_status' => $status,
+                'status_badge' => $badge,
+                'mode' => $session->mode,
+                'location' => $session->location,
+                'meeting_url' => $session->meeting_url,
+                'attendance_complete' => $attendanceComplete,
+                'session_end_datetime' => $sessionEnd->format('Y-m-d H:i:s'),
+                'session_end_timestamp' => $sessionEnd->timestamp,
+            ];
+        })->toArray();
     }
 
     public function courses()
@@ -126,12 +208,86 @@ class InstructorController extends Controller
     {
         // Data untuk halaman Chat (berisi latest-messages)
         $latest_messages = $this->getLatestMessages();
-        $unread_messages_count = 3;
+        $unread_messages_count = $this->getUnreadMessagesCount();
 
         return view('instructor.dashboard.messages', compact(
             'latest_messages',
             'unread_messages_count'
         ));
+    }
+
+    /**
+     * Menampilkan detail conversation
+     */
+    public function showChat($conversationId)
+    {
+        $instructorId = Auth::id();
+        
+        $conversation = Conversation::whereHas('participants', function($query) use ($instructorId) {
+                $query->where('user_id', $instructorId);
+            })
+            ->with(['participants', 'messages.user'])
+            ->findOrFail($conversationId);
+        
+        return view('instructor.dashboard.chat-show', compact('conversation'));
+    }
+
+    /**
+     * Membuat conversation baru atau mendapatkan yang sudah ada
+     */
+    public function createOrGetConversation(Request $request)
+    {
+        $instructorId = Auth::id();
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+        ]);
+        
+        $otherUser = User::findOrFail($request->user_id);
+        
+        // Cek apakah sudah ada conversation
+        $conversation = Conversation::whereHas('participants', function($query) use ($instructorId) {
+                $query->where('user_id', $instructorId);
+            })
+            ->whereHas('participants', function($query) use ($otherUser) {
+                $query->where('user_id', $otherUser->id);
+            })
+            ->first();
+        
+        if (!$conversation) {
+            $conversation = Conversation::create([
+                'title' => 'Chat dengan ' . $otherUser->name,
+            ]);
+            $conversation->participants()->attach([$instructorId, $otherUser->id]);
+        }
+        
+        return redirect()->route('instructor.chat.show', $conversation->id);
+    }
+
+    /**
+     * Mengirim pesan
+     */
+    public function sendMessage(Request $request, $conversationId)
+    {
+        $instructorId = Auth::id();
+        
+        // Verify instructor is participant
+        $conversation = Conversation::whereHas('participants', function($query) use ($instructorId) {
+                $query->where('user_id', $instructorId);
+            })
+            ->findOrFail($conversationId);
+        
+        $request->validate([
+            'body' => 'required|string|max:5000',
+        ]);
+        
+        Message::create([
+            'conversation_id' => $conversation->id,
+            'user_id' => $instructorId,
+            'body' => $request->body,
+        ]);
+        
+        return redirect()->route('instructor.chat.show', $conversation->id)
+            ->with('success', 'Pesan berhasil dikirim!');
     }
 
     // Helper methods untuk mendapatkan data dari database
@@ -142,7 +298,7 @@ class InstructorController extends Controller
         
         $sessions = CourseSession::where('instructor_id', $instructorId)
             ->whereDate('scheduled_at', $today)
-            ->with('course')
+            ->with(['course', 'attendances'])
             ->orderBy('scheduled_at')
             ->get();
         
@@ -161,14 +317,27 @@ class InstructorController extends Controller
             if ($now->between($sessionTime, $sessionEnd)) {
                 $status = 'Ongoing';
                 $badge = 'success';
-            } elseif ($now->greaterThan($sessionEnd)) {
+            } elseif ($now->greaterThanOrEqualTo($sessionEnd)) {
+                // Gunakan greaterThanOrEqualTo agar status langsung berubah ke Completed saat waktu sama
                 $status = 'Completed';
                 $badge = 'info';
             }
             
-            $participantCount = Enrollment::where('course_id', $session->course_id)
+            // Ambil semua peserta yang terdaftar di kursus ini
+            $enrollments = Enrollment::where('course_id', $session->course_id)
                 ->where('status', EnrollmentStatus::Active)
-                ->count();
+                ->get();
+            
+            $participantCount = $enrollments->count();
+            
+            // Cek apakah semua peserta sudah punya absensi
+            $attendanceUserIds = $session->attendances->pluck('user_id')->unique();
+            $enrollmentUserIds = $enrollments->pluck('user_id')->unique();
+            
+            // Absensi lengkap jika semua peserta sudah punya absensi
+            // Cek apakah ada peserta yang belum punya absensi
+            $missingAttendance = $enrollmentUserIds->diff($attendanceUserIds);
+            $attendanceComplete = $missingAttendance->isEmpty() && $participantCount > 0;
             
             return (object)[
                 'id' => $session->id,
@@ -179,6 +348,9 @@ class InstructorController extends Controller
                 'max_participants' => null,
                 'session_status' => $status,
                 'status_badge' => $badge,
+                'attendance_complete' => $attendanceComplete,
+                'session_end_timestamp' => $sessionEnd->timestamp,
+                'session_end_datetime' => $sessionEnd->format('Y-m-d H:i:s'),
             ];
         })->toArray();
     }
@@ -248,18 +420,33 @@ class InstructorController extends Controller
         $instructorId = Auth::id();
         $now = Carbon::now();
         
-        // Sesi yang sudah lewat tapi belum ada absensi untuk semua peserta
+        // Sesi yang sudah selesai (waktu akhir sesi sudah lewat) tapi belum ada absensi untuk semua peserta
         $sessions = CourseSession::where('instructor_id', $instructorId)
-            ->where('scheduled_at', '<', $now)
             ->with(['course', 'attendances'])
             ->get()
-            ->filter(function ($session) {
+            ->filter(function ($session) use ($now) {
+                // Cek apakah waktu akhir sesi sudah lewat
+                $sessionEnd = Carbon::parse($session->scheduled_at)
+                    ->addMinutes($session->duration_minutes ?? 90);
+                
+                // Jika sesi belum selesai (waktu sekarang masih kurang dari waktu akhir), skip
+                // Gunakan lessThan saja agar saat waktu sama dengan waktu akhir sudah bisa input
+                if ($now->lessThan($sessionEnd)) {
+                    return false;
+                }
+                
                 // Cek apakah semua peserta sudah punya absensi
                 $enrollments = Enrollment::where('course_id', $session->course_id)
                     ->where('status', EnrollmentStatus::Active)
-                    ->pluck('user_id');
+                    ->pluck('user_id')
+                    ->unique();
                 
-                $attendanceUserIds = $session->attendances->pluck('user_id');
+                // Jika tidak ada peserta, skip
+                if ($enrollments->isEmpty()) {
+                    return false;
+                }
+                
+                $attendanceUserIds = $session->attendances->pluck('user_id')->unique();
                 
                 // Jika ada peserta yang belum punya absensi, return true
                 return $enrollments->diff($attendanceUserIds)->isNotEmpty();
@@ -320,31 +507,41 @@ class InstructorController extends Controller
     {
         $instructorId = Auth::id();
         
-        // Ambil pesan terbaru dari conversation yang melibatkan instruktur ini
-        $messages = Message::whereHas('conversation', function ($query) use ($instructorId) {
-            $query->whereHas('participants', function ($q) use ($instructorId) {
-                $q->where('user_id', $instructorId);
-            });
+        // Ambil conversation yang melibatkan instruktur ini dengan pesan terbaru
+        $conversations = Conversation::whereHas('participants', function ($query) use ($instructorId) {
+            $query->where('user_id', $instructorId);
         })
-        ->with(['user', 'conversation'])
-        ->orderBy('created_at', 'desc')
-        ->take(5)
+        ->with(['latestMessage.user', 'participants'])
+        ->whereHas('messages')
+        ->orderBy('updated_at', 'desc')
+        ->take(10)
         ->get();
         
-        return $messages->map(function ($message) {
-            $createdAt = Carbon::parse($message->created_at);
+        return $conversations->map(function ($conversation) use ($instructorId) {
+            $latestMessage = $conversation->latestMessage;
+            $otherParticipant = $conversation->participants->where('id', '!=', $instructorId)->first();
+            
+            if (!$latestMessage) {
+                return null;
+            }
+            
+            $createdAt = Carbon::parse($latestMessage->created_at);
             
             return (object)[
-                'message_id' => $message->id,
-                'sender_name' => $message->user->name ?? 'N/A',
-                'sender_avatar' => asset('metronic_html_v8.2.9_demo1/demo1/assets/media/avatars/300-1.jpg'),
-                'course_name' => $message->conversation->title ?? 'Course',
-                'message_preview' => substr($message->body ?? '', 0, 50) . '...',
+                'message_id' => $latestMessage->id,
+                'conversation_id' => $conversation->id,
+                'sender_name' => $latestMessage->user->name ?? 'N/A',
+                'sender_avatar' => $latestMessage->user->profile && $latestMessage->user->profile->photo_path 
+                    ? asset('storage/' . $latestMessage->user->profile->photo_path)
+                    : asset('metronic_html_v8.2.9_demo1/demo1/assets/media/avatars/300-1.jpg'),
+                'other_participant_name' => $otherParticipant->name ?? 'N/A',
+                'conversation_title' => $conversation->title ?? 'Chat',
+                'message_preview' => substr($latestMessage->body ?? '', 0, 50) . (strlen($latestMessage->body ?? '') > 50 ? '...' : ''),
                 'message_subject' => 'Pesan',
                 'message_date' => $createdAt->format('d M Y'),
                 'message_time' => $createdAt->format('H:i'),
             ];
-        })->toArray();
+        })->filter()->toArray();
     }
 
     private function getUnreadMessagesCount()
@@ -435,6 +632,25 @@ class InstructorController extends Controller
             ->with('user')
             ->get();
         
+        // Cek apakah semua peserta sudah punya absensi
+        $attendanceUserIds = $session->attendances->pluck('user_id')->unique();
+        $enrollmentUserIds = $enrollments->pluck('user_id')->unique();
+        
+        // Jika semua peserta sudah punya absensi, redirect dengan pesan
+        $missingAttendance = $enrollmentUserIds->diff($attendanceUserIds);
+        if ($missingAttendance->isEmpty() && $enrollments->count() > 0) {
+            return redirect()->route('instructor.attendance')
+                ->with('info', 'Absensi untuk sesi ini sudah lengkap.');
+        }
+        
+        // Cek apakah sesi sudah selesai (waktu akhir sesi sudah lewat)
+        $now = Carbon::now();
+        $sessionEnd = Carbon::parse($session->scheduled_at)
+            ->addMinutes($session->duration_minutes ?? 90);
+        
+        // Jika sesi belum selesai, tetap izinkan input (fleksibel untuk instruktur)
+        // Tapi bisa ditambahkan warning atau info
+        
         // Gabungkan dengan data absensi yang sudah ada
         $students = $enrollments->map(function ($enrollment) use ($session) {
             $attendance = $session->attendances->firstWhere('user_id', $enrollment->user_id);
@@ -444,7 +660,7 @@ class InstructorController extends Controller
                 'name' => $enrollment->user->name ?? 'N/A',
                 'email' => $enrollment->user->email ?? 'N/A',
                 'attendance_id' => $attendance->id ?? null,
-                'status' => $attendance->status ?? null,
+                'status' => $attendance ? $attendance->status->value : null,
                 'notes' => $attendance->notes ?? null,
             ];
         });
@@ -471,20 +687,30 @@ class InstructorController extends Controller
             'attendances.*.notes' => 'nullable|string|max:500',
         ]);
 
-        DB::transaction(function () use ($request, $session) {
-            foreach ($request->attendances as $attendanceData) {
-                Attendance::updateOrCreate(
-                    [
-                        'course_session_id' => $session->id,
-                        'user_id' => $attendanceData['user_id'],
-                    ],
-                    [
-                        'status' => $attendanceData['status'],
-                        'notes' => $attendanceData['notes'] ?? null,
-                    ]
-                );
-            }
-        });
+        try {
+            DB::transaction(function () use ($request, $session) {
+                foreach ($request->attendances as $attendanceData) {
+                    // Cari atau buat attendance record
+                    $attendance = Attendance::firstOrNew(
+                        [
+                            'course_session_id' => $session->id,
+                            'user_id' => $attendanceData['user_id'],
+                        ]
+                    );
+                    
+                    // Update nilai status dan notes
+                    $attendance->status = AttendanceStatus::from($attendanceData['status']);
+                    $attendance->notes = $attendanceData['notes'] ?? null;
+                    
+                    // Simpan (akan create jika baru, update jika sudah ada)
+                    $attendance->save();
+                }
+            });
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['error' => 'Gagal menyimpan absensi: ' . $e->getMessage()]);
+        }
 
         return redirect()->route('instructor.attendance')
             ->with('success', 'Absensi berhasil disimpan!');
@@ -842,5 +1068,54 @@ class InstructorController extends Controller
         
         return redirect()->route('instructor.certificates')
             ->with('success', 'Sertifikat berhasil dibuat!');
+    }
+
+    /**
+     * Menampilkan halaman profil
+     */
+    public function profile()
+    {
+        $user = Auth::user();
+        $profile = $user->profile;
+        
+        return view('instructor.profile.index', compact('user', 'profile'));
+    }
+
+    /**
+     * Update profil instructor
+     */
+    public function updateProfile(Request $request)
+    {
+        $user = Auth::user();
+        
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'phone' => 'nullable|string|max:20',
+            'address' => 'nullable|string|max:500',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+        ]);
+        
+        // Update user name
+        $user->update([
+            'name' => $request->name,
+        ]);
+        
+        // Update atau create profile
+        $profile = $user->profile ?? new UserProfile(['user_id' => $user->id]);
+        
+        $profile->phone = $request->phone;
+        $profile->address = $request->address;
+        
+        // Handle photo upload
+        if ($request->hasFile('photo')) {
+            if ($profile->photo_path) {
+                Storage::disk('public')->delete($profile->photo_path);
+            }
+            $profile->photo_path = $request->file('photo')->store('profiles', 'public');
+        }
+        
+        $profile->save();
+        
+        return redirect()->route('instructor.profile')->with('success', 'Profil berhasil diperbarui.');
     }
 }

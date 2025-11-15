@@ -26,6 +26,15 @@
                 </div>
             @endif
 
+            @if(isset($removedCourses) && !empty($removedCourses))
+                <div class="col-lg-12">
+                    <div class="alert alert-warning">
+                        <strong>Perhatian:</strong> Kursus berikut sudah terdaftar dan telah dihapus dari keranjang: 
+                        <strong>{{ implode(', ', $removedCourses) }}</strong>
+                    </div>
+                </div>
+            @endif
+
             @if(empty($courses))
                 <div class="col-lg-12">
                     <div class="alert alert-info text-center">

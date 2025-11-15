@@ -30,7 +30,7 @@ Instructor Dashboard - Latest Messages from Students
 								</div>
 								<div class="d-flex flex-column">
 									<span class="text-gray-900 fw-bold">{{ $message->sender_name }}</span>
-									<span class="text-gray-500 fs-7">{{ $message->course_name }}</span>
+									<span class="text-gray-500 fs-7">{{ $message->conversation_title ?? 'Chat' }}</span>
 								</div>
 							</div>
 						</td>
@@ -43,9 +43,15 @@ Instructor Dashboard - Latest Messages from Students
 							<span class="text-gray-500 fs-7 d-block">{{ $message->message_time }}</span>
 						</td>
 						<td>
-							<a href="#" class="btn btn-sm btn-primary" onclick="viewMessage({{ $message->message_id }})">
-								Lihat
-							</a>
+							@if(isset($message->conversation_id))
+								<a href="{{ route('instructor.chat.show', $message->conversation_id) }}" class="btn btn-sm btn-primary">
+									Lihat Chat
+								</a>
+							@else
+								<a href="{{ route('instructor.messages') }}" class="btn btn-sm btn-primary">
+									Lihat
+								</a>
+							@endif
 						</td>
 					</tr>
 					@empty

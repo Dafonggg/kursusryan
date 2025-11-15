@@ -62,7 +62,13 @@
 								<td>{{ $session->course_name }}</td>
 								<td>{{ $session->session_time }}</td>
 								<td>{{ $session->participant_count }}</td>
-								<td><a href="#" class="btn btn-sm btn-primary">Lihat</a></td>
+								<td>
+									@if(isset($session->id))
+										<a href="{{ route('instructor.attendance.input', $session->id) }}" class="btn btn-sm btn-primary">Lihat</a>
+									@else
+										<a href="{{ route('instructor.sessions') }}" class="btn btn-sm btn-primary">Lihat</a>
+									@endif
+								</td>
 							</tr>
 							@empty
 							<tr>

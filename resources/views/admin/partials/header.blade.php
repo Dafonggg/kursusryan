@@ -10,8 +10,9 @@
 			</div>
 		</div>
 		<div class="d-flex align-items-center flex-grow-1 flex-lg-grow-0">
-			<a href="{{ route('admin.dashboard') }}" class="d-lg-none">
-				<img alt="Logo" src="{{ asset('metronic_html_v8.2.9_demo1/demo1/assets/media/logos/default-small.svg') }}" class="h-30px" />
+			<a href="{{ route('admin.dashboard') }}" class="d-flex align-items-center text-decoration-none">
+				<img alt="Logo" src="{{ asset('images/logokrk.png') }}" class="h-35px d-lg-none" />
+				<img alt="Logo" src="{{ asset('images/logokrk.png') }}" class="h-30px d-none d-lg-block" />
 			</a>
 		</div>
 		<div class="d-flex align-items-stretch justify-content-end flex-lg-grow-1 ms-auto" id="kt_app_header_wrapper">
@@ -29,14 +30,19 @@
 				</div>
 				<!-- Profile Button -->
 				<div class="app-navbar-item" id="kt_header_user_menu_toggle">
+					@php
+						$userAvatar = (Auth::user()->profile && Auth::user()->profile->photo_path)
+							? asset('storage/' . Auth::user()->profile->photo_path)
+							: asset('metronic_html_v8.2.9_demo1/demo1/assets/media/avatars/300-3.jpg');
+					@endphp
 					<div class="cursor-pointer symbol symbol-35px" data-kt-menu-trigger="{default: 'click', lg: 'hover'}" data-kt-menu-attach="parent" data-kt-menu-placement="bottom-end">
-						<img src="{{ asset('metronic_html_v8.2.9_demo1/demo1/assets/media/avatars/300-3.jpg') }}" class="rounded-3" alt="user" />
+						<img src="{{ $userAvatar }}" class="rounded-3" alt="{{ Auth::user()->name }}" />
 					</div>
 					<div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg menu-state-color fw-semibold py-4 fs-6 w-275px" data-kt-menu="true">
 					<div class="menu-item px-3">
 						<div class="menu-content d-flex align-items-center px-3">
 							<div class="symbol symbol-50px me-5">
-								<img alt="Logo" src="{{ asset('metronic_html_v8.2.9_demo1/demo1/assets/media/avatars/300-3.jpg') }}" />
+								<img alt="{{ Auth::user()->name }}" src="{{ $userAvatar }}" />
 							</div>
 								<div class="d-flex flex-column">
 									<div class="fw-bold d-flex align-items-center fs-5">
@@ -59,13 +65,33 @@
 						</div>
 						<div class="separator my-2"></div>
 						<div class="menu-item px-5">
-							<a href="account/overview.html" class="menu-link px-5">My Profile</a>
+							<a href="{{ route('admin.dashboard') }}" class="menu-link px-5">
+								<i class="ki-duotone ki-element-11 fs-6 me-2">
+									<span class="path1"></span>
+									<span class="path2"></span>
+									<span class="path3"></span>
+									<span class="path4"></span>
+								</i>
+								Dashboard
+							</a>
 						</div>
 						<div class="menu-item px-5">
-							<a href="account/settings.html" class="menu-link px-5">Settings</a>
+							<a href="{{ route('admin.settings.index') }}" class="menu-link px-5">
+								<i class="ki-duotone ki-setting-2 fs-6 me-2">
+									<span class="path1"></span>
+									<span class="path2"></span>
+								</i>
+								Pengaturan
+							</a>
 						</div>
 						<div class="menu-item px-5">
-							<a href="{{ route('home') }}" class="menu-link px-5">Back to Home</a>
+							<a href="{{ route('home') }}" class="menu-link px-5">
+								<i class="ki-duotone ki-home-2 fs-6 me-2">
+									<span class="path1"></span>
+									<span class="path2"></span>
+								</i>
+								Kembali ke Beranda
+							</a>
 						</div>
 					<div class="separator my-2"></div>
 					<div class="menu-item px-5">

@@ -100,6 +100,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/sessions', [SessionController::class, 'store'])->name('sessions.store');
         
         // Payments
+        Route::get('/payments', [PaymentController::class, 'index'])->name('payments.index');
         Route::get('/payments/pending', [PaymentController::class, 'pending'])->name('payments.pending');
         Route::post('/payments/{payment}/verify', [PaymentController::class, 'verify'])->name('payments.verify');
         
@@ -138,6 +139,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
         Route::put('/settings', [SettingsController::class, 'update'])->name('settings.update');
         Route::get('/settings/api', [SettingsController::class, 'getSettings'])->name('settings.api');
+        
+        // Profile Routes
+        Route::get('/profile', [AdminController::class, 'profile'])->name('profile');
+        Route::put('/profile', [AdminController::class, 'updateProfile'])->name('profile.update');
     });
 });
 
@@ -152,6 +157,11 @@ Route::prefix('instructor')->name('instructor.')->middleware(['auth', 'checkrole
     Route::get('/messages', [InstructorController::class, 'messages'])->name('messages');
     Route::get('/transactions', [InstructorController::class, 'transactions'])->name('transactions');
     Route::get('/certificates', [InstructorController::class, 'certificates'])->name('certificates');
+    
+    // Chat Routes
+    Route::get('/chat/{conversationId}', [InstructorController::class, 'showChat'])->name('chat.show');
+    Route::post('/chat/create', [InstructorController::class, 'createOrGetConversation'])->name('chat.create');
+    Route::post('/chat/{conversationId}/send', [InstructorController::class, 'sendMessage'])->name('chat.send');
     
     // Quick Actions Routes
     Route::get('/sessions/create', [InstructorController::class, 'createSession'])->name('sessions.create');
@@ -174,6 +184,10 @@ Route::prefix('instructor')->name('instructor.')->middleware(['auth', 'checkrole
     
     // Sertifikat Routes
     Route::post('/certificates/{enrollmentId}/generate', [InstructorController::class, 'generateCertificate'])->name('certificates.generate');
+    
+    // Profile Routes
+    Route::get('/profile', [InstructorController::class, 'profile'])->name('profile');
+    Route::put('/profile', [InstructorController::class, 'updateProfile'])->name('profile.update');
 });
 
 // Student Routes
@@ -182,11 +196,13 @@ Route::prefix('student')->name('student.')->middleware(['auth', 'checkrole:stude
     Route::get('/my-courses', [StudentController::class, 'myCourses'])->name('my-courses');
     Route::get('/schedule', [StudentController::class, 'schedule'])->name('schedule');
     Route::get('/payment', [StudentController::class, 'payment'])->name('payment');
+    Route::post('/payment/{payment}/upload-proof', [StudentController::class, 'uploadPaymentProof'])->name('payment.upload-proof');
     Route::get('/certificate', [StudentController::class, 'certificate'])->name('certificate');
     Route::get('/chat', [StudentController::class, 'chat'])->name('chat');
     
-    // Materials Routes (route tanpa parameter harus diletakkan setelah route dengan parameter)
-    Route::get('/materials/{courseSlug?}', [StudentController::class, 'materials'])->name('materials');
+    // Materials Routes
+    Route::get('/materials', [StudentController::class, 'materials'])->name('materials');
+    Route::get('/materials/{courseSlug}', [StudentController::class, 'materials'])->name('materials.course');
     
     // Reschedule Routes
     Route::get('/reschedule', [StudentController::class, 'reschedule'])->name('reschedule');

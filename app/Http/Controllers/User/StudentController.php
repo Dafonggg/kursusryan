@@ -10,9 +10,12 @@ use App\Models\Course;
 use App\Models\CourseMaterial;
 use App\Models\CourseSession;
 use App\Models\RescheduleRequest;
+use App\Models\User;
 use App\Models\UserProfile;
 use App\Models\Payment;
 use App\Models\Certificate;
+use App\Models\Conversation;
+use App\Models\Message;
 use App\Enums\RescheduleStatus;
 use App\Enums\EnrollmentStatus;
 use App\Enums\PaymentStatus;
@@ -24,6 +27,9 @@ class StudentController extends Controller
     public function index()
     {
         $user = Auth::user();
+        
+        // Ringkasan Dashboard
+        $summary = $this->getDashboardSummary($user);
         
         // Data real untuk Continue Learning
         $continue_learning = $this->getContinueLearning($user);
@@ -43,15 +49,18 @@ class StudentController extends Controller
         
         // Data real untuk Chat Shortcut
         $chat_shortcut = $this->getChatShortcut($user);
+        $admin_shortcut = $this->getAdminShortcut();
 
         return view('student.dashboard.index', compact(
+            'summary',
             'continue_learning',
             'next_session',
             'active_days',
             'payment_status',
             'ready_certificates',
             'ready_certificates_count',
-            'chat_shortcut'
+            'chat_shortcut',
+            'admin_shortcut'
         ));
     }
 
@@ -59,40 +68,139 @@ class StudentController extends Controller
     {
         $user = Auth::user();
         
-        // Data real untuk Continue Learning
-        $continue_learning = $this->getContinueLearning($user);
+        // Ambil semua enrollment dengan status aktif dan selesai
+        $enrollments = Enrollment::where('user_id', $user->id)
+            ->with(['course', 'payments' => function($query) {
+                $query->latest('created_at')->limit(1);
+            }])
+            ->orderBy('created_at', 'desc')
+            ->get();
         
-        // Data real untuk Active Days Counter
-        $active_days = $this->getActiveDays($user);
+        // Pisahkan aktif dan selesai
+        $activeEnrollments = $enrollments->filter(function($enrollment) {
+            return $enrollment->status === EnrollmentStatus::Active && 
+                   ($enrollment->expires_at === null || $enrollment->expires_at->isFuture());
+        });
+        
+        $completedEnrollments = $enrollments->filter(function($enrollment) {
+            return $enrollment->status === EnrollmentStatus::Completed || 
+                   ($enrollment->expires_at !== null && $enrollment->expires_at->isPast());
+        });
 
-        return view('student.dashboard.index', compact(
-            'continue_learning',
-            'active_days'
-        ))->with('showMyCoursesOnly', true);
+        return view('student.courses.index', compact(
+            'activeEnrollments',
+            'completedEnrollments'
+        ));
     }
 
     public function schedule()
     {
         $user = Auth::user();
         
-        // Data real untuk Next Session
-        $next_session = $this->getNextSession($user);
+        // Ambil semua session dari kursus yang diikuti student
+        $sessions = CourseSession::whereHas('course.enrollments', function($query) use ($user) {
+                $query->where('user_id', $user->id)
+                      ->where('status', EnrollmentStatus::Active);
+            })
+            ->with(['course', 'instructor'])
+            ->where('scheduled_at', '>=', now())
+            ->orderBy('scheduled_at')
+            ->get();
+        
+        // Group by course
+        $sessionsByCourse = $sessions->groupBy('course_id');
 
-        return view('student.dashboard.index', compact(
-            'next_session'
-        ))->with('showScheduleOnly', true);
+        return view('student.schedule.index', compact(
+            'sessions',
+            'sessionsByCourse'
+        ));
     }
 
-    public function payment()
+    public function payment(Request $request)
     {
         $user = Auth::user();
         
+        // Get payment by ID if provided
+        $payment = null;
+        if ($request->has('payment')) {
+            $payment = Payment::where('id', $request->payment)
+                ->whereHas('enrollment', function($query) use ($user) {
+                    $query->where('user_id', $user->id);
+                })
+                ->first();
+        }
+        
         // Data real untuk Payment Status
         $payment_status = $this->getPaymentStatus($user);
+        
+        // Get all pending payments for this user
+        $pendingPayments = Payment::whereHas('enrollment', function($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })
+            ->where('status', PaymentStatus::Pending)
+            ->with(['enrollment.course'])
+            ->latest('created_at')
+            ->get();
 
-        return view('student.dashboard.index', compact(
-            'payment_status'
-        ))->with('showPaymentOnly', true);
+        return view('student.payment.index', compact(
+            'payment_status',
+            'pendingPayments',
+            'payment'
+        ));
+    }
+    
+    /**
+     * Upload bukti pembayaran
+     */
+    public function uploadPaymentProof(Request $request, Payment $payment)
+    {
+        // Verify payment belongs to user
+        $user = Auth::user();
+        $payment->load('enrollment');
+        
+        if ($payment->enrollment->user_id !== $user->id) {
+            return redirect()->back()->with('error', 'Pembayaran tidak ditemukan.');
+        }
+        
+        if ($payment->status !== PaymentStatus::Pending) {
+            return redirect()->back()->with('error', 'Pembayaran ini sudah diproses.');
+        }
+        
+        $request->validate([
+            'proof' => 'required|image|mimes:jpeg,png,jpg|max:5120', // Max 5MB
+            'bank' => 'nullable|string|max:255',
+            'account_number' => 'nullable|string|max:50',
+            'reference' => 'nullable|string|max:255',
+        ]);
+        
+        // Upload bukti pembayaran
+        $proofPath = $request->file('proof')->store('payment-proofs', 'public');
+        
+        // Update payment meta
+        $meta = $payment->meta ?? [];
+        $meta['proof'] = $proofPath;
+        $meta['proof_image'] = $proofPath; // Alias
+        $meta['bukti'] = $proofPath; // Alias
+        
+        if ($request->filled('bank')) {
+            $meta['bank'] = $request->bank;
+            $meta['bank_name'] = $request->bank;
+        }
+        
+        if ($request->filled('account_number')) {
+            $meta['account_number'] = $request->account_number;
+            $meta['no_rekening'] = $request->account_number;
+        }
+        
+        if ($request->filled('reference')) {
+            $payment->reference = $request->reference;
+        }
+        
+        $payment->meta = $meta;
+        $payment->save();
+        
+        return redirect()->route('student.payment', ['payment' => $payment->id])
+            ->with('success', 'Bukti pembayaran berhasil diupload. Menunggu verifikasi admin.');
     }
 
     public function certificate()
@@ -113,12 +221,101 @@ class StudentController extends Controller
     {
         $user = Auth::user();
         
-        // Data real untuk Chat Shortcut
-        $chat_shortcut = $this->getChatShortcut($user);
+        // Ambil semua conversation yang melibatkan user ini
+        $conversations = Conversation::whereHas('participants', function($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })
+            ->with(['participants', 'latestMessage.user'])
+            ->withCount('messages')
+            ->orderBy('updated_at', 'desc')
+            ->get();
+        
+        // Ambil admin dan instruktur untuk memulai chat baru
+        $admins = User::where('role', 'admin')->get();
+        $instructors = User::where('role', 'instructor')->get();
 
-        return view('student.dashboard.index', compact(
-            'chat_shortcut'
-        ))->with('showChatOnly', true);
+        return view('student.chat.index', compact(
+            'conversations',
+            'admins',
+            'instructors'
+        ));
+    }
+    
+    /**
+     * Menampilkan detail conversation
+     */
+    public function showChat($conversationId)
+    {
+        $user = Auth::user();
+        
+        $conversation = Conversation::whereHas('participants', function($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })
+            ->with(['participants', 'messages.user'])
+            ->findOrFail($conversationId);
+        
+        // Mark messages as read (jika ada fitur read status)
+        
+        return view('student.chat.show', compact('conversation'));
+    }
+    
+    /**
+     * Membuat conversation baru atau mendapatkan yang sudah ada
+     */
+    public function createOrGetConversation(Request $request)
+    {
+        $user = Auth::user();
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+        ]);
+        
+        $otherUser = User::findOrFail($request->user_id);
+        
+        // Cek apakah sudah ada conversation
+        $conversation = Conversation::whereHas('participants', function($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })
+            ->whereHas('participants', function($query) use ($otherUser) {
+                $query->where('user_id', $otherUser->id);
+            })
+            ->first();
+        
+        if (!$conversation) {
+            $conversation = Conversation::create([
+                'title' => 'Chat dengan ' . $otherUser->name,
+            ]);
+            $conversation->participants()->attach([$user->id, $otherUser->id]);
+        }
+        
+        return redirect()->route('student.chat.show', $conversation->id);
+    }
+    
+    /**
+     * Mengirim pesan
+     */
+    public function sendMessage(Request $request, $conversationId)
+    {
+        $user = Auth::user();
+        
+        // Verify user is participant
+        $conversation = Conversation::whereHas('participants', function($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })
+            ->findOrFail($conversationId);
+        
+        $request->validate([
+            'body' => 'required|string|max:5000',
+        ]);
+        
+        Message::create([
+            'conversation_id' => $conversation->id,
+            'user_id' => $user->id,
+            'body' => $request->body,
+        ]);
+        
+        $conversation->touch(); // Update updated_at
+        
+        return redirect()->back()->with('success', 'Pesan berhasil dikirim.');
     }
 
     /**
@@ -307,12 +504,13 @@ class StudentController extends Controller
             ->first();
         
         if ($activeEnrollment && $activeEnrollment->expires_at) {
-            $remainingDays = max(0, now()->diffInDays($activeEnrollment->expires_at, false));
+            // Hitung selisih hari (hanya tanggal, tanpa jam)
+            $remainingDays = max(0, now()->startOfDay()->diffInDays($activeEnrollment->expires_at->startOfDay()));
             $totalDays = $activeEnrollment->started_at && $activeEnrollment->expires_at 
-                ? $activeEnrollment->started_at->diffInDays($activeEnrollment->expires_at) 
+                ? $activeEnrollment->started_at->startOfDay()->diffInDays($activeEnrollment->expires_at->startOfDay()) 
                 : 90;
             $usedDays = $activeEnrollment->started_at 
-                ? max(0, now()->diffInDays($activeEnrollment->started_at)) 
+                ? max(0, now()->startOfDay()->diffInDays($activeEnrollment->started_at->startOfDay())) 
                 : 0;
             $activeDaysPercentage = $totalDays > 0 ? min(100, (int)(($usedDays / $totalDays) * 100)) : 0;
             
@@ -389,6 +587,63 @@ class StudentController extends Controller
     }
 
     /**
+     * Helper: Get Dashboard Summary
+     */
+    private function getDashboardSummary($user)
+    {
+        // Jumlah kursus aktif
+        $activeCoursesCount = Enrollment::where('user_id', $user->id)
+            ->where('status', EnrollmentStatus::Active)
+            ->where(function($query) {
+                $query->whereNull('expires_at')
+                      ->orWhere('expires_at', '>', now());
+            })
+            ->count();
+        
+        // Masa berlaku (dari enrollment terbaru)
+        $latestEnrollment = Enrollment::where('user_id', $user->id)
+            ->where('status', EnrollmentStatus::Active)
+            ->latest('started_at')
+            ->first();
+        
+        $expiryDate = null;
+        $remainingDays = null;
+        if ($latestEnrollment && $latestEnrollment->expires_at) {
+            $expiryDate = $latestEnrollment->expires_at->format('d M Y');
+            // Hitung selisih hari (hanya tanggal, tanpa jam)
+            $remainingDays = max(0, now()->startOfDay()->diffInDays($latestEnrollment->expires_at->startOfDay()));
+        }
+        
+        // Status pembayaran terakhir
+        $lastPayment = Payment::whereHas('enrollment', function($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })
+            ->latest('created_at')
+            ->first();
+        
+        $paymentStatus = 'Tidak ada';
+        $paymentStatusBadge = 'secondary';
+        if ($lastPayment) {
+            $paymentStatus = ucfirst($lastPayment->status->value);
+            $paymentStatusBadge = match($lastPayment->status->value) {
+                'paid' => 'success',
+                'pending' => 'warning',
+                'failed' => 'danger',
+                'refunded' => 'info',
+                default => 'secondary'
+            };
+        }
+        
+        return (object)[
+            'active_courses_count' => $activeCoursesCount,
+            'expiry_date' => $expiryDate,
+            'remaining_days' => $remainingDays,
+            'payment_status' => $paymentStatus,
+            'payment_status_badge' => $paymentStatusBadge,
+        ];
+    }
+
+    /**
      * Helper: Get Chat Shortcut Data
      */
     private function getChatShortcut($user)
@@ -400,7 +655,7 @@ class StudentController extends Controller
             ->first();
         
         if ($activeEnrollment && $activeEnrollment->course && $activeEnrollment->course->owner_id) {
-            $instructor = User::find($activeEnrollment->course->owner_id);
+            $instructor = User::with('profile')->find($activeEnrollment->course->owner_id);
             if ($instructor) {
                 $profile = $instructor->profile;
                 $avatar = $profile && $profile->photo_path 
@@ -413,6 +668,31 @@ class StudentController extends Controller
                     'instructor_avatar' => $avatar,
                 ];
             }
+        }
+        
+        return null;
+    }
+
+    /**
+     * Helper: Get Admin Shortcut Data
+     */
+    private function getAdminShortcut()
+    {
+        $admin = User::where('role', 'admin')
+            ->with('profile')
+            ->first();
+        
+        if ($admin) {
+            $profile = $admin->profile;
+            $avatar = $profile && $profile->photo_path 
+                ? Storage::url($profile->photo_path) 
+                : asset('metronic_html_v8.2.9_demo1/demo1/assets/media/avatars/300-3.jpg');
+            
+            return (object)[
+                'admin_id' => $admin->id,
+                'admin_name' => $admin->name,
+                'admin_avatar' => $avatar,
+            ];
         }
         
         return null;

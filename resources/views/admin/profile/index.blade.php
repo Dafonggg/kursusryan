@@ -1,4 +1,4 @@
-@extends('student.layouts.master')
+@extends('admin.layouts.master')
 
 @section('title', 'Profil | Kursus Ryan Komputer')
 @section('description', 'Edit profil pengguna')
@@ -10,12 +10,12 @@
 			<h1 class="page-heading d-flex text-gray-900 fw-bold fs-3 flex-column justify-content-center my-0">Profil</h1>
 			<ul class="breadcrumb breadcrumb-separatorless fw-semibold fs-7 my-0 pt-1">
 				<li class="breadcrumb-item text-muted">
-					<a href="{{ route('student.dashboard') }}" class="text-muted text-hover-primary">Home</a>
+					<a href="{{ route('admin.dashboard') }}" class="text-muted text-hover-primary">Home</a>
 				</li>
 				<li class="breadcrumb-item">
 					<span class="bullet bg-gray-500 w-5px h-2px"></span>
 				</li>
-				<li class="breadcrumb-item text-muted">Student</li>
+				<li class="breadcrumb-item text-muted">Admin</li>
 				<li class="breadcrumb-item">
 					<span class="bullet bg-gray-500 w-5px h-2px"></span>
 				</li>
@@ -42,7 +42,7 @@
 		</h3>
 	</div>
 	<div class="card-body pt-0">
-		<form action="{{ route('student.profile.update') }}" method="POST" enctype="multipart/form-data">
+		<form action="{{ route('admin.profile.update') }}" method="POST" enctype="multipart/form-data">
 			@csrf
 			@method('PUT')
 			
@@ -123,48 +123,6 @@
 				</div>
 			</div>
 
-			<!-- Dokumen KTP -->
-			<div class="row mb-10">
-				<div class="col-md-6">
-					<label class="form-label">Dokumen KTP</label>
-					@if($profile && $profile->ktp_path)
-						<div class="mb-3">
-							<a href="{{ asset('storage/' . $profile->ktp_path) }}" target="_blank" class="btn btn-sm btn-light-primary">
-								<i class="ki-duotone ki-file-down fs-5 me-1">
-									<span class="path1"></span>
-									<span class="path2"></span>
-								</i>
-								Lihat KTP
-							</a>
-						</div>
-					@endif
-					<input type="file" name="ktp" class="form-control form-control-solid" accept=".pdf,image/jpeg,image/png,image/jpg">
-					<div class="form-text">Format: PDF, JPG, PNG. Maksimal 2MB</div>
-					@error('ktp')
-						<div class="text-danger mt-1">{{ $message }}</div>
-					@enderror
-				</div>
-				<div class="col-md-6">
-					<label class="form-label">Dokumen KK</label>
-					@if($profile && $profile->kk_path)
-						<div class="mb-3">
-							<a href="{{ asset('storage/' . $profile->kk_path) }}" target="_blank" class="btn btn-sm btn-light-primary">
-								<i class="ki-duotone ki-file-down fs-5 me-1">
-									<span class="path1"></span>
-									<span class="path2"></span>
-								</i>
-								Lihat KK
-							</a>
-						</div>
-					@endif
-					<input type="file" name="kk" class="form-control form-control-solid" accept=".pdf,image/jpeg,image/png,image/jpg">
-					<div class="form-text">Format: PDF, JPG, PNG. Maksimal 2MB</div>
-					@error('kk')
-						<div class="text-danger mt-1">{{ $message }}</div>
-					@enderror
-				</div>
-			</div>
-
 			<div class="d-flex justify-content-end">
 				<button type="submit" class="btn btn-primary">
 					<i class="ki-duotone ki-check fs-2">
@@ -226,3 +184,4 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 @endpush
+

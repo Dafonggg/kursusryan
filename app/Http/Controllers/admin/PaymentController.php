@@ -10,6 +10,32 @@ use Illuminate\Http\Request;
 class PaymentController extends Controller
 {
     /**
+     * Display all payments
+     */
+    public function index(Request $request)
+    {
+        $query = Payment::with(['enrollment.course', 'enrollment.user']);
+        
+        // Filter by status if provided
+        if ($request->has('status') && $request->status !== 'all') {
+            $query->where('status', PaymentStatus::from($request->status));
+        }
+        
+        // Search by user name or email
+        if ($request->has('search') && $request->search) {
+            $search = $request->search;
+            $query->whereHas('enrollment.user', function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+        
+        $payments = $query->latest('created_at')->paginate(15);
+        
+        return view('admin.payments.index', compact('payments'));
+    }
+
+    /**
      * Display pending payments
      */
     public function pending()

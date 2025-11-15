@@ -9,10 +9,13 @@ use App\Models\Enrollment;
 use App\Models\RescheduleRequest;
 use App\Models\Course;
 use App\Models\User;
+use App\Models\UserProfile;
 use App\Enums\EnrollmentStatus;
 use App\Enums\PaymentStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Response;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
 
 class AdminController extends Controller
@@ -283,5 +286,54 @@ class AdminController extends Controller
         };
 
         return Response::stream($callback, 200, $headers);
+    }
+
+    /**
+     * Menampilkan halaman profil
+     */
+    public function profile()
+    {
+        $user = Auth::user();
+        $profile = $user->profile;
+        
+        return view('admin.profile.index', compact('user', 'profile'));
+    }
+
+    /**
+     * Update profil admin
+     */
+    public function updateProfile(Request $request)
+    {
+        $user = Auth::user();
+        
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'phone' => 'nullable|string|max:20',
+            'address' => 'nullable|string|max:500',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+        ]);
+        
+        // Update user name
+        $user->update([
+            'name' => $request->name,
+        ]);
+        
+        // Update atau create profile
+        $profile = $user->profile ?? new UserProfile(['user_id' => $user->id]);
+        
+        $profile->phone = $request->phone;
+        $profile->address = $request->address;
+        
+        // Handle photo upload
+        if ($request->hasFile('photo')) {
+            if ($profile->photo_path) {
+                Storage::disk('public')->delete($profile->photo_path);
+            }
+            $profile->photo_path = $request->file('photo')->store('profiles', 'public');
+        }
+        
+        $profile->save();
+        
+        return redirect()->route('admin.profile')->with('success', 'Profil berhasil diperbarui.');
     }
 }

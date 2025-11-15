@@ -17,7 +17,7 @@
         <div class="login__content">
             <img src="{{ asset('images/bg-login.png') }}" alt="register image" class="login__img">
 
-            <form action="{{ route('register') }}" method="POST" class="login__form">
+            <form action="{{ route('register.post') }}" method="POST" class="login__form">
                 @csrf
                 <div>
                     <h1 class="login__title">

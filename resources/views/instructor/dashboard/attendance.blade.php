@@ -31,6 +31,20 @@
 <div class="row gx-5 gx-xl-10 mb-5 mb-xl-10">
 	<!-- Attendance Pending -->
 	<div class="col-12">
+		@if(session('success'))
+		<div class="alert alert-success alert-dismissible fade show" role="alert">
+			{{ session('success') }}
+			<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+		</div>
+		@endif
+
+		@if(session('info'))
+		<div class="alert alert-info alert-dismissible fade show" role="alert">
+			{{ session('info') }}
+			<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+		</div>
+		@endif
+
 		@include('instructor.dashboard.components.attendance-pending')
 	</div>
 </div>
