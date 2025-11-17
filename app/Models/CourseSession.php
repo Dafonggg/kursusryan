@@ -82,4 +82,24 @@ class CourseSession extends Model
     {
         return (string) $this->mode === 'offline';
     }
+
+    /**
+     * Get all enrolled users for this session's course
+     * Only returns active enrollments
+     */
+    public function getEnrolledUsers()
+    {
+        // Pastikan course sudah di-load
+        if (!$this->relationLoaded('course')) {
+            $this->load('course');
+        }
+
+        return $this->course
+            ->enrollments()
+            ->active()
+            ->with('user.profile')
+            ->get()
+            ->pluck('user')
+            ->filter();
+    }
 }

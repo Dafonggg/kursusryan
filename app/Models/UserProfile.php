@@ -12,10 +12,15 @@ class UserProfile extends Model
     protected $fillable = [
         'user_id',
         'phone',
+        'whatsapp_opt_in',
         'address',
         'kk_path',
         'ktp_path',
         'photo_path',
+    ];
+
+    protected $casts = [
+        'whatsapp_opt_in' => 'boolean',
     ];
 
     public function user()

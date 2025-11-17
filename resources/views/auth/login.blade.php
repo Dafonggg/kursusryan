@@ -114,12 +114,24 @@
 								<!--end::Input group=-->
 								<div class="fv-row mb-3">
 									<!--begin::Password-->
-									<input type="password" 
-										   placeholder="Password" 
-										   name="password" 
-										   autocomplete="off" 
-										   class="form-control bg-transparent @error('password') is-invalid @enderror" 
-										   required />
+									<div class="position-relative">
+										<input type="password" 
+											   id="password-input"
+											   placeholder="Password" 
+											   name="password" 
+											   autocomplete="off" 
+											   class="form-control bg-transparent @error('password') is-invalid @enderror" 
+											   required />
+										<span class="btn btn-sm btn-icon position-absolute translate-middle-y top-50 end-0 me-n2" 
+											  id="password-toggle" 
+											  style="cursor: pointer;">
+											<i class="ki-duotone ki-eye fs-2" id="password-icon">
+												<span class="path1"></span>
+												<span class="path2"></span>
+												<span class="path3"></span>
+											</i>
+										</span>
+									</div>
 									<!--end::Password-->
 									@error('password')
 										<div class="invalid-feedback">{{ $message }}</div>
@@ -195,7 +207,7 @@
 					<div class="d-flex flex-column flex-center py-7 py-lg-15 px-5 px-md-15 w-100">
 						<!--begin::Logo-->
 						<a href="{{ route('home') }}" class="mb-0 mb-lg-12">
-							<img alt="Logo" src="{{ asset('images/logoke101.png') }}" class="h-60px h-lg-75px" />
+							<img alt="Logo" src="{{ asset('images/bgloginputih1.png') }}" class="h-60px h-lg-75px" />
 						</a>
 						<!--end::Logo-->
 					</div>
@@ -215,6 +227,29 @@
 		<!--begin::Custom Javascript(used for this page only)-->
 		<script src="{{ asset('metronic_html_v8.2.9_demo1/demo1/assets/js/custom/authentication/sign-in/general.js') }}"></script>
 		<!--end::Custom Javascript-->
+		<!--begin::Password Toggle Script-->
+		<script>
+			document.addEventListener('DOMContentLoaded', function() {
+				const passwordInput = document.getElementById('password-input');
+				const passwordToggle = document.getElementById('password-toggle');
+				const passwordIcon = document.getElementById('password-icon');
+				
+				if (passwordToggle && passwordInput) {
+					passwordToggle.addEventListener('click', function() {
+						if (passwordInput.type === 'password') {
+							passwordInput.type = 'text';
+							passwordIcon.classList.remove('ki-eye');
+							passwordIcon.classList.add('ki-eye-slash');
+						} else {
+							passwordInput.type = 'password';
+							passwordIcon.classList.remove('ki-eye-slash');
+							passwordIcon.classList.add('ki-eye');
+						}
+					});
+				}
+			});
+		</script>
+		<!--end::Password Toggle Script-->
 		<!--end::Javascript-->
 	</body>
 	<!--end::Body-->

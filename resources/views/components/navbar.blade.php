@@ -1,7 +1,7 @@
 <nav class="navbar navbar-expand-lg">
     <div class="container">
         <a class="navbar-brand d-flex align-items-center" href="{{ url('/') }}">
-            <img src="{{ asset('images/logoke101.png') }}" alt="Ryan Computer" style="height: 40px; margin-right: 10px;">
+            <img src="{{ asset('images/bgloginputih1.png') }}" alt="Ryan Computer" style="height: 40px; margin-right: 10px;">
         </a>
 
         <!-- Cart Button, Bookmark Button and Hamburger Menu for Mobile -->
