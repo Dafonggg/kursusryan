@@ -36,27 +36,29 @@
 
             <div class="col-lg-12 col-12 mt-3">
                 <!-- Search and Filter -->
-                <div class="row mb-4">
-                    <div class="col-md-6">
-                        <form method="GET" action="{{ route('daftar-kursus') }}">
-                            <div class="input-group">
-                                <input type="text" name="search" class="form-control" placeholder="Cari kursus..." value="{{ request('search') }}">
-                                <button class="btn btn-primary" type="submit">Cari</button>
-                            </div>
-                        </form>
-                    </div>
-                    <div class="col-md-6">
-                        <form method="GET" action="{{ route('daftar-kursus') }}">
-                            <div class="input-group">
-                                <select name="mode" class="form-select" onchange="this.form.submit()">
-                                    <option value="">Semua Mode</option>
-                                    <option value="online" {{ request('mode') == 'online' ? 'selected' : '' }}>Online</option>
-                                    <option value="offline" {{ request('mode') == 'offline' ? 'selected' : '' }}>Offline</option>
-                                    <option value="hybrid" {{ request('mode') == 'hybrid' ? 'selected' : '' }}>Hybrid</option>
-                                </select>
-                            </div>
-                        </form>
-                    </div>
+                <div class="mb-4 d-flex flex-column align-items-center">
+                    <form method="GET" action="{{ route('daftar-kursus') }}" class="w-100 mb-3" style="max-width: 600px;">
+                        <div class="input-group" style="border-radius: 50px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                            <input type="text" name="search" class="form-control" placeholder="Cari kursus..." value="{{ request('search') }}" style="border-radius: 50px 0 0 50px; border: none; padding-left: 25px;">
+                            <button class="btn custom-btn" type="submit" style="border-radius: 0 50px 50px 0; border: none; padding: 10px 30px;">Cari</button>
+                        </div>
+                        @if(request('mode'))
+                            <input type="hidden" name="mode" value="{{ request('mode') }}">
+                        @endif
+                    </form>
+                    <form method="GET" action="{{ route('daftar-kursus') }}" class="w-100" style="max-width: 600px;">
+                        <div class="input-group">
+                            <select name="mode" class="form-select" onchange="this.form.submit()" style="border-radius: 50px; border: 1px solid #ddd; padding: 10px 25px;">
+                                <option value="">Semua Mode</option>
+                                <option value="online" {{ request('mode') == 'online' ? 'selected' : '' }}>Online</option>
+                                <option value="offline" {{ request('mode') == 'offline' ? 'selected' : '' }}>Offline</option>
+                                <option value="hybrid" {{ request('mode') == 'hybrid' ? 'selected' : '' }}>Hybrid</option>
+                            </select>
+                        </div>
+                        @if(request('search'))
+                            <input type="hidden" name="search" value="{{ request('search') }}">
+                        @endif
+                    </form>
                 </div>
 
                 @if($courses->isEmpty())
@@ -78,13 +80,13 @@
                                         <p class="mb-0">{{ Str::limit($course->description, 150) }}</p>
                                         <div class="mt-2">
                                             <span class="badge bg-primary">{{ ucfirst($course->mode->value) }}</span>
-                                            <span class="badge bg-success">Rp {{ number_format($course->price, 0, ',', '.') }}</span>
+                                            <span class="ms-2">Rp {{ number_format($course->price, 0, ',', '.') }}</span>
                                         </div>
                                         <div class="mt-3">
                                             <a href="{{ route('detail-kursus', $course->slug) }}" class="btn custom-btn me-2">Detail</a>
                                             <form action="{{ route('cart.add', $course->id) }}" method="POST" class="d-inline">
                                                 @csrf
-                                                <button type="submit" class="btn btn-outline-primary">Tambah ke Keranjang</button>
+                                                <button type="submit" class="btn custom-btn">Tambah ke Keranjang</button>
                                             </form>
                                         </div>
                                     </div>

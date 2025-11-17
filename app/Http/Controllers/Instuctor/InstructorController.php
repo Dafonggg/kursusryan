@@ -483,18 +483,23 @@ class InstructorController extends Controller
             $query->where('instructor_id', $instructorId);
         })
         ->where('status', RescheduleStatus::Pending)
-        ->with(['session.course', 'requester'])
+        ->with(['session.course', 'requester.profile'])
         ->orderBy('created_at', 'desc')
         ->get();
         
         return $requests->map(function ($request) {
             $proposedAt = Carbon::parse($request->proposed_at);
             
+            // Ambil avatar dari profile jika ada, jika tidak gunakan default
+            $studentAvatar = $request->requester && $request->requester->profile && $request->requester->profile->photo_path
+                ? asset('storage/' . $request->requester->profile->photo_path)
+                : asset('metronic_html_v8.2.9_demo1/demo1/assets/media/avatars/300-1.jpg');
+            
             return (object)[
                 'request_id' => $request->id,
                 'student_name' => $request->requester->name ?? 'N/A',
                 'student_email' => $request->requester->email ?? 'N/A',
-                'student_avatar' => asset('metronic_html_v8.2.9_demo1/demo1/assets/media/avatars/300-1.jpg'),
+                'student_avatar' => $studentAvatar,
                 'session_name' => $request->session->title ?? 'Sesi ' . $request->session->id,
                 'course_name' => $request->session->course->title ?? 'N/A',
                 'new_date' => $proposedAt->format('d M Y'),

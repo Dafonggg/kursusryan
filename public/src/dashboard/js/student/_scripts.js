@@ -62,14 +62,59 @@ function initializeCertificateActions() {
 function initializeChatActions() {
     // Chat with instructor
     window.chatInstructor = function(instructorId) {
-        // Navigate to chat page or open chat modal
-        window.location.href = `/student/chat/instructor/${instructorId}`;
+        // Create form and submit to create or get conversation
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/student/chat/create';
+        
+        // Add CSRF token
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = '_token';
+        csrfInput.value = csrfToken;
+        form.appendChild(csrfInput);
+        
+        // Add user_id
+        const userIdInput = document.createElement('input');
+        userIdInput.type = 'hidden';
+        userIdInput.name = 'user_id';
+        userIdInput.value = instructorId;
+        form.appendChild(userIdInput);
+        
+        document.body.appendChild(form);
+        form.submit();
     };
 
     // Chat with admin
-    window.chatAdmin = function() {
-        // Navigate to chat page or open chat modal
-        window.location.href = `/student/chat/admin`;
+    window.chatAdmin = function(adminId) {
+        if (adminId) {
+            // Create form and submit to create or get conversation
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/student/chat/create';
+            
+            // Add CSRF token
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = '_token';
+            csrfInput.value = csrfToken;
+            form.appendChild(csrfInput);
+            
+            // Add user_id
+            const userIdInput = document.createElement('input');
+            userIdInput.type = 'hidden';
+            userIdInput.name = 'user_id';
+            userIdInput.value = adminId;
+            form.appendChild(userIdInput);
+            
+            document.body.appendChild(form);
+            form.submit();
+        } else {
+            // Navigate to chat index if no admin ID provided
+            window.location.href = '/student/chat';
+        }
     };
 }
 

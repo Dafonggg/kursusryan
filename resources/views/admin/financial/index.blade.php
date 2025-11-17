@@ -19,7 +19,8 @@
 			</ul>
 		</div>
 		<div class="d-flex align-items-center gap-2 gap-lg-3">
-			<a href="{{ route('admin.export-financial') }}" class="btn btn-sm fw-bold btn-primary">Export CSV</a>
+			<a href="{{ route('admin.export-financial') }}" class="btn btn-sm fw-bold btn-light-primary">Export CSV</a>
+			<a href="{{ route('admin.export-financial-pdf') }}" class="btn btn-sm fw-bold btn-primary">Export PDF</a>
 		</div>
 	</div>
 </div>

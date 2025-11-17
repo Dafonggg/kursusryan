@@ -26,7 +26,9 @@ Instructor Dashboard - Pending Reschedule Requests
 						<td>
 							<div class="d-flex align-items-center">
 								<div class="symbol symbol-40px me-3">
-									<img src="{{ $request->student_avatar }}" alt="{{ $request->student_name }}" />
+									<img src="{{ $request->student_avatar }}" 
+										alt="{{ $request->student_name }}" 
+										onerror="this.src='{{ asset('metronic_html_v8.2.9_demo1/demo1/assets/media/avatars/300-1.jpg') }}'" />
 								</div>
 								<div class="d-flex flex-column">
 									<span class="text-gray-900 fw-bold">{{ $request->student_name }}</span>

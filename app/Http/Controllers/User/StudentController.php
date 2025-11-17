@@ -37,6 +37,10 @@ class StudentController extends Controller
         // Data real untuk Next Session
         $next_session = $this->getNextSession($user);
         
+        // Data real untuk Today Sessions
+        $today_sessions = $this->getTodaySessions($user);
+        $today_sessions_count = count($today_sessions);
+        
         // Data real untuk Active Days Counter
         $active_days = $this->getActiveDays($user);
         
@@ -55,6 +59,8 @@ class StudentController extends Controller
             'summary',
             'continue_learning',
             'next_session',
+            'today_sessions',
+            'today_sessions_count',
             'active_days',
             'payment_status',
             'ready_certificates',
@@ -352,6 +358,39 @@ class StudentController extends Controller
     }
 
     /**
+     * Menampilkan detail session
+     */
+    public function showSession(CourseSession $session)
+    {
+        $user = Auth::user();
+        
+        // Verifikasi bahwa session ini milik kursus yang diikuti student
+        $enrollment = Enrollment::where('user_id', $user->id)
+            ->where('course_id', $session->course_id)
+            ->where('status', EnrollmentStatus::Active)
+            ->first();
+        
+        if (!$enrollment) {
+            abort(403, 'Anda tidak memiliki akses ke sesi ini.');
+        }
+        
+        // Load relationships
+        $session->load(['course', 'instructor.profile']);
+        
+        // Format waktu
+        $startTime = $session->scheduled_at;
+        $endTime = $startTime->copy()->addMinutes($session->duration_minutes ?? 120);
+        
+        // Cek apakah ada reschedule request yang pending
+        $pendingReschedule = RescheduleRequest::where('course_session_id', $session->id)
+            ->where('requested_by', $user->id)
+            ->where('status', RescheduleStatus::Pending)
+            ->first();
+        
+        return view('student.sessions.show', compact('session', 'startTime', 'endTime', 'pendingReschedule'));
+    }
+
+    /**
      * Menampilkan halaman reschedule
      */
     public function reschedule()
@@ -487,10 +526,70 @@ class StudentController extends Controller
                 'session_mode' => ucfirst($nextSession->mode ?? 'Online'),
                 'session_location' => $nextSession->location ?? ($isOnline ? 'Zoom Meeting' : 'Kelas Offline'),
                 'session_link' => $nextSession->meeting_url ?? '#',
+                'scheduled_at' => $startTime, // DateTime object untuk pengecekan waktu
+                'is_online' => $isOnline,
             ];
         }
         
         return null;
+    }
+
+    /**
+     * Helper: Get Today Sessions Data
+     */
+    private function getTodaySessions($user)
+    {
+        $today = Carbon::today();
+        
+        $sessions = CourseSession::whereHas('course.enrollments', function($query) use ($user) {
+                $query->where('user_id', $user->id)
+                      ->where('status', EnrollmentStatus::Active);
+            })
+            ->whereDate('scheduled_at', $today)
+            ->with(['course'])
+            ->orderBy('scheduled_at')
+            ->get();
+        
+        return $sessions->map(function ($session) {
+            $course = $session->course;
+            $startTime = Carbon::parse($session->scheduled_at);
+            $endTime = $startTime->copy()->addMinutes($session->duration_minutes ?? 120);
+            
+            $now = Carbon::now();
+            $sessionTime = Carbon::parse($session->scheduled_at);
+            $sessionEnd = $sessionTime->copy()->addMinutes($session->duration_minutes ?? 120);
+            
+            $status = 'Upcoming';
+            $badge = 'warning';
+            if ($now->between($sessionTime, $sessionEnd)) {
+                $status = 'Berlangsung';
+                $badge = 'success';
+            } elseif ($now->greaterThanOrEqualTo($sessionEnd)) {
+                $status = 'Selesai';
+                $badge = 'info';
+            } else {
+                $status = 'Akan Datang';
+                $badge = 'warning';
+            }
+            
+            $isOnline = in_array(strtolower($session->mode ?? ''), ['online', 'hybrid']);
+            
+            return (object)[
+                'session_id' => $session->id,
+                'course_name' => $course->title ?? 'N/A',
+                'course_image' => $course->image ? Storage::url($course->image) : asset('metronic_html_v8.2.9_demo1/demo1/assets/media/stock/600x400/img-2.jpg'),
+                'session_name' => $session->title,
+                'session_time' => $startTime->format('H:i') . ' - ' . $endTime->format('H:i') . ' WIB',
+                'session_duration' => ($session->duration_minutes ?? 120) . ' menit',
+                'session_mode' => ucfirst($session->mode ?? 'Online'),
+                'session_location' => $session->location ?? ($isOnline ? 'Zoom Meeting' : 'Kelas Offline'),
+                'session_link' => $session->meeting_url ?? '#',
+                'session_status' => $status,
+                'status_badge' => $badge,
+                'is_online' => $isOnline,
+                'can_join' => $now >= $sessionTime,
+            ];
+        })->toArray();
     }
 
     /**

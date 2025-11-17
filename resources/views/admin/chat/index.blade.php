@@ -18,98 +18,88 @@
 				<li class="breadcrumb-item text-gray-900">Chat</li>
 			</ul>
 		</div>
-		<div class="d-flex align-items-center gap-2 gap-lg-3">
-			<a href="{{ route('admin.chat.create') }}" class="btn btn-sm fw-bold btn-primary">Pesan Baru</a>
-		</div>
 	</div>
 </div>
 @endsection
 
 @section('content')
-<div class="card card-flush">
-	<div class="card-header pt-5">
-		<h3 class="card-title align-items-start flex-column">
-			<span class="card-label fw-bold text-gray-900">Daftar Percakapan</span>
-			<span class="text-gray-500 mt-1 fw-semibold fs-6">{{ $conversations->count() }} percakapan</span>
-		</h3>
-	</div>
-	<div class="card-body pt-0">
-		@if(session('success'))
-			<div class="alert alert-success alert-dismissible fade show" role="alert">
-				{{ session('success') }}
-				<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+<div class="row g-5 g-xl-10 mb-5 mb-xl-10">
+	<!-- Daftar Conversation -->
+	<div class="col-12 col-lg-4">
+		<div class="card card-flush h-100">
+			<div class="card-header pt-5">
+				<h3 class="card-title align-items-start flex-column">
+					<span class="card-label fw-bold text-gray-900">Percakapan</span>
+					<span class="text-gray-500 mt-1 fw-semibold fs-6">{{ $conversations->count() }} percakapan</span>
+				</h3>
 			</div>
-		@endif
-
-		<div class="table-responsive">
-			<table class="table table-row-dashed table-row-gray-300 align-middle gs-0 gy-4">
-				<thead>
-					<tr class="fw-bold text-muted">
-						<th>Peserta</th>
-						<th>Pesan Terakhir</th>
-						<th>Waktu</th>
-						<th>Status</th>
-						<th>Aksi</th>
-					</tr>
-				</thead>
-				<tbody>
-					@forelse($conversations as $conversation)
-						@php
-							$otherParticipant = $conversation->participants->firstWhere('id', '!=', auth()->id());
-							$avatar = ($otherParticipant && $otherParticipant->profile && $otherParticipant->profile->photo_path)
-								? asset('storage/' . $otherParticipant->profile->photo_path)
-								: asset('metronic_html_v8.2.9_demo1/demo1/assets/media/avatars/300-3.jpg');
-							$unreadCount = $conversation->messages_count ?? 0;
-						@endphp
-						<tr>
-							<td>
-								<div class="d-flex align-items-center">
-									<div class="symbol symbol-40px me-3">
-										<img src="{{ $avatar }}" alt="{{ $otherParticipant->name ?? 'Unknown' }}" class="rounded-circle" />
-										@if($unreadCount > 0)
-											<span class="badge badge-circle badge-danger position-absolute translate-middle top-0 start-100">{{ $unreadCount }}</span>
-										@endif
-									</div>
-									<div class="d-flex flex-column">
-										<span class="text-gray-900 fw-bold">{{ $otherParticipant->name ?? 'Unknown' }}</span>
-										<span class="text-gray-500 fs-7">{{ $otherParticipant->email ?? '-' }}</span>
-									</div>
+			<div class="card-body pt-0">
+				<!-- Mulai Chat Baru -->
+				<div class="mb-5">
+					<a href="{{ route('admin.chat.create') }}" class="btn btn-primary w-100">
+						<i class="ki-duotone ki-plus fs-2">
+							<span class="path1"></span>
+							<span class="path2"></span>
+						</i>
+						Mulai Chat Baru
+					</a>
+				</div>
+				
+				<!-- List Conversation -->
+				@if($conversations->count() > 0)
+					<div class="separator my-4"></div>
+					<div class="scroll-y" style="max-height: 600px;">
+						@foreach($conversations as $conversation)
+							@php
+								$otherParticipant = $conversation->participants->where('id', '!=', auth()->id())->first();
+								$latestMessage = $conversation->latestMessage;
+							@endphp
+							<a href="{{ route('admin.chat.show', $conversation->id) }}" class="d-flex align-items-center p-3 rounded mb-2 bg-light">
+								<div class="symbol symbol-40px me-3">
+									@if($otherParticipant && $otherParticipant->profile && $otherParticipant->profile->photo_path)
+										<img src="{{ asset('storage/' . $otherParticipant->profile->photo_path) }}" alt="{{ $otherParticipant->name }}" />
+									@else
+										<div class="symbol-label bg-light-primary">
+											<span class="text-primary fw-bold">{{ substr($otherParticipant->name ?? 'U', 0, 1) }}</span>
+										</div>
+									@endif
 								</div>
-							</td>
-							<td>
-								@if($conversation->latestMessage)
-									<span class="text-gray-900">{{ mb_substr($conversation->latestMessage->body, 0, 50) }}{{ mb_strlen($conversation->latestMessage->body) > 50 ? '...' : '' }}</span>
-								@else
-									<span class="text-muted">Belum ada pesan</span>
+								<div class="d-flex flex-column flex-grow-1">
+									<span class="text-gray-900 fw-bold">{{ $otherParticipant->name ?? 'Unknown' }}</span>
+									@if($latestMessage)
+										<span class="text-gray-500 fs-7">{{ \Illuminate\Support\Str::limit($latestMessage->body, 50) }}</span>
+									@else
+										<span class="text-gray-500 fs-7">Belum ada pesan</span>
+									@endif
+								</div>
+								@if($latestMessage)
+									<span class="text-gray-500 fs-8">{{ $latestMessage->created_at->diffForHumans() }}</span>
 								@endif
-							</td>
-							<td>
-								@if($conversation->latestMessage)
-									<span class="text-gray-500 fs-7">{{ $conversation->latestMessage->created_at->diffForHumans() }}</span>
-								@else
-									<span class="text-muted">-</span>
-								@endif
-							</td>
-							<td>
-								@if($unreadCount > 0)
-									<span class="badge badge-light-danger">Pesan Baru</span>
-								@else
-									<span class="badge badge-light-success">Terbaca</span>
-								@endif
-							</td>
-							<td>
-								<a href="{{ route('admin.chat.show', $conversation->id) }}" class="btn btn-sm btn-primary">
-									Buka Chat
-								</a>
-							</td>
-						</tr>
-					@empty
-						<tr>
-							<td colspan="5" class="text-center text-muted">Belum ada percakapan</td>
-						</tr>
-					@endforelse
-				</tbody>
-			</table>
+							</a>
+						@endforeach
+					</div>
+				@else
+					<div class="text-center py-10">
+						<div class="text-gray-500">Belum ada percakapan</div>
+					</div>
+				@endif
+			</div>
+		</div>
+	</div>
+	
+	<!-- Area Chat (akan diisi oleh show.blade.php atau default message) -->
+	<div class="col-12 col-lg-8">
+		<div class="card card-flush h-100">
+			<div class="card-body d-flex align-items-center justify-content-center" style="min-height: 500px;">
+				<div class="text-center">
+					<i class="ki-duotone ki-chat fs-3x text-gray-400 mb-5">
+						<span class="path1"></span>
+						<span class="path2"></span>
+					</i>
+					<h3 class="text-gray-900 fw-bold mb-3">Pilih Percakapan</h3>
+					<p class="text-gray-500">Pilih percakapan dari daftar di sebelah kiri atau mulai chat baru</p>
+				</div>
+			</div>
 		</div>
 	</div>
 </div>

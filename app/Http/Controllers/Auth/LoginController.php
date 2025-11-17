@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 class LoginController extends Controller
 {
     public function login()
@@ -16,20 +17,56 @@ class LoginController extends Controller
     }
     public function loginPost(Request $request)
     {
-        $request->validate([
-            'email'=>'required|email|max:50',
-            'password'=>'required|max:50',
-        ]);
+        try {
+            $request->validate([
+                'email'=>'required|email|max:50',
+                'password'=>'required|max:50',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // If AJAX request, return JSON response for validation errors
+            if($request->ajax() || $request->wantsJson()){
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validasi gagal',
+                    'errors' => $e->errors()
+                ], 422);
+            }
+            throw $e;
+        }
+        
         if(Auth::attempt($request->only('email', 'password'))){
             $request->session()->regenerate();
+            
+            // Determine redirect URL based on role
+            $redirectUrl = route('home');
             if($request->user()->role == 'admin'){
-                return redirect()->intended('admin/dashboard');
+                $redirectUrl = route('admin.dashboard');
             }elseif($request->user()->role == 'instructor'){
-                return redirect()->intended('instructor/dashboard');
+                $redirectUrl = route('instructor.dashboard');
             }elseif($request->user()->role == 'user' || $request->user()->role == 'student'){
-                return redirect()->intended('student/dashboard');
+                $redirectUrl = route('home');
             }
+            
+            // If AJAX request, return JSON response
+            if($request->ajax() || $request->wantsJson()){
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Login berhasil!',
+                    'redirect_url' => $redirectUrl
+                ]);
+            }
+            
+            return redirect()->intended($redirectUrl);
         }
+        
+        // If AJAX request, return JSON response for error
+        if($request->ajax() || $request->wantsJson()){
+            return response()->json([
+                'success' => false,
+                'message' => 'Email atau password salah!'
+            ], 401);
+        }
+        
         return back()->with('loginError', 'Login failed! ');
         
     }

@@ -48,7 +48,7 @@
 				<tbody>
 					@forelse($sessions as $session)
 						<tr>
-							<td>{{ $session->id }}</td>
+							<td>{{ ($sessions->currentPage() - 1) * $sessions->perPage() + $loop->iteration }}</td>
 							<td>{{ $session->title }}</td>
 							<td>{{ $session->course->title ?? '-' }}</td>
 							<td>{{ $session->instructor->name ?? '-' }}</td>

@@ -6,7 +6,7 @@
 				<img alt="Logo" src="{{ asset('images/logokrk.png') }}" class="h-40px app-sidebar-logo-default" />
 				<img alt="Logo" src="{{ asset('images/logokrk.png') }}" class="h-35px app-sidebar-logo-minimize" />
 			</a>
-			<div class="text-white fw-bold fs-5 app-sidebar-logo-default">
+			<div class="text-gray-800 fw-bold fs-5 app-sidebar-logo-default">
 				Halo {{ Auth::user()->name }}
 			</div>
 		</div>

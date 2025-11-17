@@ -82,11 +82,11 @@ class GoogleAuthController extends Controller
 
             // Redirect based on role
             if ($user->role == 'admin') {
-                return redirect()->intended('admin/dashboard');
+                return redirect()->intended(route('admin.dashboard'));
             } elseif ($user->role == 'instructor') {
-                return redirect()->intended('instructor/dashboard');
+                return redirect()->intended(route('instructor.dashboard'));
             } elseif ($user->role == 'user' || $user->role == 'student') {
-                return redirect()->intended('student/dashboard');
+                return redirect()->intended(route('home'));
             }
 
             return redirect()->route('home');

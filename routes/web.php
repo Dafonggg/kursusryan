@@ -55,11 +55,11 @@ Route::delete('/cart/remove/{courseId}', [CartController::class, 'remove'])->nam
 Route::post('/cart/clear', [CartController::class, 'clear'])->name('cart.clear');
 Route::get('/cart/count', [CartController::class, 'count'])->name('cart.count');
 
-// Enrollment Routes
-Route::get('/checkout', [EnrollmentController::class, 'checkout'])->name('checkout')->middleware('auth');
-Route::post('/enrollment', [EnrollmentController::class, 'store'])->name('enrollment.store')->middleware('auth');
-Route::get('/enrollment/complete-data', [EnrollmentController::class, 'completeData'])->name('enrollment.complete-data')->middleware('auth');
-Route::post('/enrollment/complete-data', [EnrollmentController::class, 'storeCompleteData'])->name('enrollment.store-complete-data')->middleware('auth');
+// Enrollment Routes - Hanya untuk student dan user
+Route::get('/checkout', [EnrollmentController::class, 'checkout'])->name('checkout')->middleware(['auth', 'checkrole:student,user']);
+Route::post('/enrollment', [EnrollmentController::class, 'store'])->name('enrollment.store')->middleware(['auth', 'checkrole:student,user']);
+Route::get('/enrollment/complete-data', [EnrollmentController::class, 'completeData'])->name('enrollment.complete-data')->middleware(['auth', 'checkrole:student,user']);
+Route::post('/enrollment/complete-data', [EnrollmentController::class, 'storeCompleteData'])->name('enrollment.store-complete-data')->middleware(['auth', 'checkrole:student,user']);
 Route::get('/login', [LoginController::class, 'login'])->name('login');
 Route::post('/login', [LoginController::class, 'loginPost'])->name('login.post');
 Route::post('/logout', [LoginController::class, 'logout'])->middleware('auth')->name('logout');
@@ -77,6 +77,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', [AdminController::class, 'index'])->name('dashboard');
         Route::get('/quick-actions', [AdminController::class, 'quickActions'])->name('quick-actions');
         Route::get('/export-financial', [AdminController::class, 'exportFinancialData'])->name('export-financial');
+        Route::get('/export-financial-pdf', [AdminController::class, 'exportFinancialDataPDF'])->name('export-financial-pdf');
         
         // Courses
         Route::get('/courses', [CourseController::class, 'index'])->name('courses.index');
@@ -198,7 +199,12 @@ Route::prefix('student')->name('student.')->middleware(['auth', 'checkrole:stude
     Route::get('/payment', [StudentController::class, 'payment'])->name('payment');
     Route::post('/payment/{payment}/upload-proof', [StudentController::class, 'uploadPaymentProof'])->name('payment.upload-proof');
     Route::get('/certificate', [StudentController::class, 'certificate'])->name('certificate');
+    
+    // Chat Routes
     Route::get('/chat', [StudentController::class, 'chat'])->name('chat');
+    Route::post('/chat/create', [StudentController::class, 'createOrGetConversation'])->name('chat.create');
+    Route::get('/chat/{conversationId}', [StudentController::class, 'showChat'])->name('chat.show');
+    Route::post('/chat/{conversationId}/message', [StudentController::class, 'sendMessage'])->name('chat.send-message');
     
     // Materials Routes
     Route::get('/materials', [StudentController::class, 'materials'])->name('materials');
@@ -207,6 +213,9 @@ Route::prefix('student')->name('student.')->middleware(['auth', 'checkrole:stude
     // Reschedule Routes
     Route::get('/reschedule', [StudentController::class, 'reschedule'])->name('reschedule');
     Route::post('/reschedule', [StudentController::class, 'storeReschedule'])->name('reschedule.store');
+    
+    // Session Routes
+    Route::get('/sessions/{session}', [StudentController::class, 'showSession'])->name('sessions.show');
     
     // Profile Routes
     Route::get('/profile', [StudentController::class, 'profile'])->name('profile');

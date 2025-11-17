@@ -25,6 +25,12 @@ class EnrollmentController extends Controller
             return redirect()->route('login')->with('error', 'Silakan login terlebih dahulu untuk melanjutkan checkout!');
         }
 
+        $user = Auth::user();
+        // Mencegah admin dan instructor untuk mendaftar kursus
+        if (in_array($user->role, ['admin', 'instructor'])) {
+            return redirect()->route('home')->with('error', 'Admin dan Instruktur tidak dapat mendaftar kursus.');
+        }
+
         $cart = Session::get('cart', []);
         if (empty($cart)) {
             return redirect()->route('cart.index')->with('error', 'Keranjang Anda kosong!');
@@ -51,6 +57,12 @@ class EnrollmentController extends Controller
     {
         if (!Auth::check()) {
             return redirect()->route('login')->with('error', 'Silakan login terlebih dahulu!');
+        }
+
+        $user = Auth::user();
+        // Mencegah admin dan instructor untuk mendaftar kursus
+        if (in_array($user->role, ['admin', 'instructor'])) {
+            return redirect()->route('home')->with('error', 'Admin dan Instruktur tidak dapat mendaftar kursus.');
         }
 
         try {
@@ -193,6 +205,11 @@ class EnrollmentController extends Controller
         }
 
         $user = Auth::user();
+        // Mencegah admin dan instructor untuk melengkapi data pendaftaran
+        if (in_array($user->role, ['admin', 'instructor'])) {
+            return redirect()->route('home')->with('error', 'Admin dan Instruktur tidak dapat melengkapi data pendaftaran.');
+        }
+
         $profile = $user->profile;
 
         // Get pending enrollments
@@ -216,6 +233,12 @@ class EnrollmentController extends Controller
     {
         if (!Auth::check()) {
             return redirect()->route('login');
+        }
+
+        $user = Auth::user();
+        // Mencegah admin dan instructor untuk menyimpan data pendaftaran
+        if (in_array($user->role, ['admin', 'instructor'])) {
+            return redirect()->route('home')->with('error', 'Admin dan Instruktur tidak dapat menyimpan data pendaftaran.');
         }
 
         $request->validate([

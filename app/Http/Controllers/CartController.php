@@ -67,6 +67,17 @@ class CartController extends Controller
      */
     public function add(Request $request, $courseId)
     {
+        // Mencegah admin dan instructor untuk menambahkan kursus ke keranjang
+        if (Auth::check()) {
+            $user = Auth::user();
+            if ($user->role === 'admin') {
+                return redirect()->back()->with('error', 'Anda admin, tidak dapat menambahkan kursus ke keranjang.');
+            }
+            if ($user->role === 'instructor') {
+                return redirect()->back()->with('error', 'Anda instructor, tidak dapat menambahkan kursus ke keranjang.');
+            }
+        }
+
         $course = Course::find($courseId);
         
         if (!$course) {

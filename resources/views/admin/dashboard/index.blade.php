@@ -45,7 +45,7 @@
 		@include('admin.dashboard.components.income-chart')
 	</div>
 	<!-- Latest Registrations -->
-	<div class="col-12 col-lg-4">
+	<div class="col-12 col-lg-8">
 		@include('admin.dashboard.components.latest-registrations')
 	</div>
 </div>

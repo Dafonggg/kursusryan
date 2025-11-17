@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class AdminController extends Controller
 {
@@ -286,6 +287,38 @@ class AdminController extends Controller
         };
 
         return Response::stream($callback, 200, $headers);
+    }
+
+    /**
+     * Export financial data to PDF
+     */
+    public function exportFinancialDataPDF()
+    {
+        $payments = Payment::with(['enrollment.course', 'enrollment.user'])
+            ->latest('created_at')
+            ->get();
+
+        // Calculate summary statistics
+        $totalIncome = $payments->where('status', PaymentStatus::Paid)->sum('amount');
+        $totalPending = $payments->where('status', PaymentStatus::Pending)->sum('amount');
+        $totalPaid = $payments->where('status', PaymentStatus::Paid)->count();
+        $totalPendingCount = $payments->where('status', PaymentStatus::Pending)->count();
+
+        $data = [
+            'payments' => $payments,
+            'total_income' => $totalIncome,
+            'total_pending' => $totalPending,
+            'total_paid' => $totalPaid,
+            'total_pending_count' => $totalPendingCount,
+            'generated_at' => Carbon::now()->format('d F Y H:i:s'),
+        ];
+
+        $pdf = Pdf::loadView('admin.financial.export-pdf', $data);
+        $pdf->setPaper('a4', 'landscape');
+        
+        $filename = 'laporan_keuangan_' . date('Y-m-d_His') . '.pdf';
+        
+        return $pdf->download($filename);
     }
 
     /**

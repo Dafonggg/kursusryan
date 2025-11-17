@@ -90,21 +90,10 @@
                             <p class="mb-0">Belum punya akun? <a href="{{ route('register') }}">Daftar sekarang</a></p>
                         </div>
                     @else
-                        <form action="{{ route('cart.add', $course->id) }}" method="POST">
-                            @csrf
-                            <div class="mb-3">
-                                <label class="form-label">Kursus</label>
-                                <input type="text" class="form-control" value="{{ $course->title }}" readonly>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label">Harga</label>
-                                <input type="text" class="form-control" value="Rp {{ number_format($course->price, 0, ',', '.') }}" readonly>
-                            </div>
-                            <div class="text-center">
-                                <button type="submit" class="btn custom-btn">Tambah ke Keranjang</button>
-                                <a href="{{ route('cart.index') }}" class="btn btn-outline-primary ms-2">Lihat Keranjang</a>
-                            </div>
-                        </form>
+                        <div class="text-center">
+                            <p class="mb-4">Gunakan tombol <strong>"Tambah ke Keranjang"</strong> di bagian atas halaman untuk menambahkan kursus ini ke keranjang.</p>
+                            <a href="{{ route('cart.index') }}" class="btn btn-outline-primary">Lihat Keranjang</a>
+                        </div>
                     @endif
                 </div>
             </div>

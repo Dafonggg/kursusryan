@@ -59,11 +59,25 @@ class ChatController extends Controller
             ->orderBy('created_at')
             ->get();
 
+        // Get all conversations for sidebar
+        $conversations = Conversation::with(['participants', 'latestMessage.user'])
+            ->whereHas('participants', function ($query) {
+                $query->where('users.id', auth()->id());
+            })
+            ->orderByDesc(function ($query) {
+                $query->select('created_at')
+                    ->from('messages')
+                    ->whereColumn('messages.conversation_id', 'conversations.id')
+                    ->orderByDesc('created_at')
+                    ->limit(1);
+            })
+            ->get();
+
         $otherParticipants = $conversation->participants()
             ->where('users.id', '!=', auth()->id())
             ->get();
 
-        return view('admin.chat.show', compact('conversation', 'messages', 'otherParticipants'));
+        return view('admin.chat.show', compact('conversation', 'messages', 'otherParticipants', 'conversations'));
     }
 
     /**

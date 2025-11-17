@@ -96,10 +96,21 @@
 									@endif
 								</td>
 								<td class="text-end">
-									@if(strtolower($session->mode ?? '') === 'online' && $session->meeting_url)
-										<a href="{{ $session->meeting_url }}" target="_blank" class="btn btn-sm btn-primary">
-											Bergabung
-										</a>
+									@php
+										$canJoin = now() >= $session->scheduled_at;
+										$isOnline = strtolower($session->mode ?? '') === 'online';
+									@endphp
+									@if($isOnline && $session->meeting_url)
+										@if($canJoin)
+											<a href="{{ $session->meeting_url }}" target="_blank" class="btn btn-sm btn-primary">
+												Bergabung
+											</a>
+										@else
+											<button type="button" class="btn btn-sm btn-light" disabled>
+												Bergabung
+											</button>
+											<span class="text-gray-500 fs-7 d-block mt-1">Sesi belum dimulai</span>
+										@endif
 									@else
 										<a href="{{ route('student.reschedule') }}" class="btn btn-sm btn-light">
 											Reschedule

@@ -12,6 +12,9 @@ Student Dashboard - Next Upcoming Session
 @endphp
 
 @if(isset($next_session))
+@php
+	$canJoin = now() >= $next_session->scheduled_at;
+@endphp
 <div class="d-flex flex-column">
 	<div class="d-flex align-items-center mb-4">
 		<div class="symbol symbol-50px me-4">
@@ -50,10 +53,29 @@ Student Dashboard - Next Upcoming Session
 				<span class="path1"></span>
 				<span class="path2"></span>
 			</i>
-			<a href="{{ $next_session->session_link }}" class="text-primary fw-semibold" target="_blank">{{ $next_session->session_link }}</a>
+			@if($next_session->is_online && $next_session->session_link && $next_session->session_link !== '#')
+				@if($canJoin)
+					<a href="{{ $next_session->session_link }}" class="text-primary fw-semibold" target="_blank">{{ $next_session->session_link }}</a>
+				@else
+					<span class="text-gray-500 fw-semibold">{{ $next_session->session_link }}</span>
+					<span class="badge badge-light-warning ms-2">Belum waktunya</span>
+				@endif
+			@else
+				<span class="text-gray-500">-</span>
+			@endif
 		</div>
 	</div>
-	<a href="#" class="btn btn-sm btn-primary" onclick="viewSession({{ $next_session->session_id }})">
+	@if($next_session->is_online && $next_session->session_link && $next_session->session_link !== '#' && $canJoin)
+		<a href="{{ $next_session->session_link }}" class="btn btn-sm btn-primary me-2" target="_blank">
+			Bergabung
+		</a>
+	@elseif(!$canJoin && $next_session->is_online && $next_session->session_link && $next_session->session_link !== '#')
+		<button type="button" class="btn btn-sm btn-light me-2" disabled>
+			Bergabung
+		</button>
+		<span class="text-gray-500 fs-7">Sesi belum dimulai</span>
+	@endif
+	<a href="{{ route('student.sessions.show', $next_session->session_id) }}" class="btn btn-sm btn-primary">
 		Lihat Detail
 	</a>
 </div>

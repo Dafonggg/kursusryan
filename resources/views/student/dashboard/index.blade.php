@@ -115,6 +115,13 @@
 		</div>
 	</div>
 	<!--end::Row - Summary (Ringkasan)-->
+	<!--begin::Row - Today Sessions (Sesi Hari Ini)-->
+	<div class="row gx-5 gx-xl-10 mb-5 mb-xl-10">
+		<div class="col-12">
+			@include('student.dashboard.components.today-sessions')
+		</div>
+	</div>
+	<!--end::Row - Today Sessions (Sesi Hari Ini)-->
 	<!--begin::Row - Continue Learning & Next Session-->
 	<div class="row gx-5 gx-xl-10 mb-5 mb-xl-10">
 		<!-- Continue Learning -->

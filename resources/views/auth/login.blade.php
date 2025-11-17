@@ -1,120 +1,221 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<!--begin::Head-->
+	<head>
+		<base href="{{ asset('/') }}" />
+		<title>Login | Kursus Ryan Komputer</title>
+		<meta charset="utf-8" />
+		<meta name="description" content="Login ke Kursus Ryan Komputer" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link rel="shortcut icon" href="{{ asset('metronic_html_v8.2.9_demo1/demo1/assets/media/logos/favicon.ico') }}" />
+		<!--begin::Fonts(mandatory for all pages)-->
+		<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700" />
+		<!--end::Fonts-->
+		<!--begin::Global Stylesheets Bundle(mandatory for all pages)-->
+		<link href="{{ asset('metronic_html_v8.2.9_demo1/demo1/assets/plugins/global/plugins.bundle.css') }}" rel="stylesheet" type="text/css" />
+		<link href="{{ asset('metronic_html_v8.2.9_demo1/demo1/assets/css/style.bundle.css') }}" rel="stylesheet" type="text/css" />
+		<!--end::Global Stylesheets Bundle-->
+		<script>// Frame-busting to prevent site from being loaded within a frame without permission (click-jacking) if (window.top != window.self) { window.top.location.replace(window.self.location.href); }</script>
+	</head>
+	<!--end::Head-->
+	<!--begin::Body-->
+	<body id="kt_body" class="app-blank">
+		<!--begin::Theme mode setup on page load-->
+		<script>var defaultThemeMode = "light"; var themeMode; if ( document.documentElement ) { if ( document.documentElement.hasAttribute("data-bs-theme-mode")) { themeMode = document.documentElement.getAttribute("data-bs-theme-mode"); } else { if ( localStorage.getItem("data-bs-theme") !== null ) { themeMode = localStorage.getItem("data-bs-theme"); } else { themeMode = defaultThemeMode; } } if (themeMode === "system") { themeMode = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"; } document.documentElement.setAttribute("data-bs-theme", themeMode); }</script>
+		<!--end::Theme mode setup on page load-->
+		<!--begin::Root-->
+		<div class="d-flex flex-column flex-root" id="kt_app_root">
+			<!--begin::Authentication - Sign-in -->
+			<div class="d-flex flex-column flex-lg-row flex-column-fluid">
+				<!--begin::Body-->
+				<div class="d-flex flex-column flex-lg-row-fluid w-lg-50 p-10 order-2 order-lg-1">
+					<!--begin::Form-->
+					<div class="d-flex flex-center flex-column flex-lg-row-fluid">
+						<!--begin::Wrapper-->
+						<div class="w-lg-500px p-10">
+							<!--begin::Form-->
+							<form class="form w-100" novalidate="novalidate" id="kt_sign_in_form" action="{{ route('login') }}" method="POST">
+								@csrf
+								<!--begin::Heading-->
+								<div class="text-center mb-11">
+									<!--begin::Title-->
+									<h1 class="text-gray-900 fw-bolder mb-3">Sign In</h1>
+									<!--end::Title-->
+									<!--begin::Subtitle-->
+									<div class="text-gray-500 fw-semibold fs-6">Selamat Datang di Kursus Ryan Komputer</div>
+									<!--end::Subtitle=-->
+								</div>
+								<!--begin::Heading-->
+								<!--begin::Login options-->
+								<div class="row g-3 mb-9">
+									<!--begin::Col-->
+									<div class="col-md-12">
+										<!--begin::Google link=-->
+										<a href="{{ route('auth.google') }}" class="btn btn-flex btn-outline btn-text-gray-700 btn-active-color-primary bg-state-light flex-center text-nowrap w-100">
+										<img alt="Logo" src="{{ asset('metronic_html_v8.2.9_demo1/demo1/assets/media/svg/brand-logos/google-icon.svg') }}" class="h-15px me-3" />Sign in with Google</a>
+										<!--end::Google link=-->
+									</div>
+									<!--end::Col-->
+								</div>
+								<!--end::Login options-->
+								<!--begin::Separator-->
+								<div class="separator separator-content my-14">
+									<span class="w-125px text-gray-500 fw-semibold fs-7">Atau dengan email</span>
+								</div>
+								<!--end::Separator-->
+								<!--begin::Error Messages-->
+								@if(session('loginError'))
+									<div class="alert alert-danger d-flex align-items-center p-5 mb-8">
+										<i class="ki-duotone ki-information-5 fs-2hx text-danger me-4"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i>
+										<div class="d-flex flex-column">
+											<h4 class="mb-1 text-danger">Error</h4>
+											<span>{{ session('loginError') }}</span>
+										</div>
+									</div>
+								@endif
+								@if(session('error'))
+									<div class="alert alert-danger d-flex align-items-center p-5 mb-8">
+										<i class="ki-duotone ki-information-5 fs-2hx text-danger me-4"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i>
+										<div class="d-flex flex-column">
+											<h4 class="mb-1 text-danger">Error</h4>
+											<span>{{ session('error') }}</span>
+										</div>
+									</div>
+								@endif
+								@if($errors->any() && !$errors->has('email') && !$errors->has('password'))
+									<div class="alert alert-danger d-flex align-items-center p-5 mb-8">
+										<i class="ki-duotone ki-information-5 fs-2hx text-danger me-4"><span class="path1"></span><span class="path2"></span><span class="path3"></span></i>
+										<div class="d-flex flex-column">
+											<h4 class="mb-1 text-danger">Error</h4>
+											<ul class="mb-0">
+												@foreach($errors->all() as $error)
+													<li>{{ $error }}</li>
+												@endforeach
+											</ul>
+										</div>
+									</div>
+								@endif
+								<!--end::Error Messages-->
+								<!--begin::Input group=-->
+								<div class="fv-row mb-8">
+									<!--begin::Email-->
+									<input type="text" 
+										   placeholder="Email" 
+										   name="email" 
+										   autocomplete="off" 
+										   class="form-control bg-transparent @error('email') is-invalid @enderror" 
+										   value="{{ old('email') }}" 
+										   required />
+									<!--end::Email-->
+									@error('email')
+										<div class="invalid-feedback">{{ $message }}</div>
+									@enderror
+								</div>
+								<!--end::Input group=-->
+								<div class="fv-row mb-3">
+									<!--begin::Password-->
+									<input type="password" 
+										   placeholder="Password" 
+										   name="password" 
+										   autocomplete="off" 
+										   class="form-control bg-transparent @error('password') is-invalid @enderror" 
+										   required />
+									<!--end::Password-->
+									@error('password')
+										<div class="invalid-feedback">{{ $message }}</div>
+									@enderror
+								</div>
+								<!--end::Input group=-->
+								<!--begin::Wrapper-->
+								<div class="d-flex flex-stack flex-wrap gap-3 fs-base fw-semibold mb-8">
+									<div>
+										<label class="form-check form-check-custom form-check-solid">
+											<input class="form-check-input" type="checkbox" name="remember" value="1" />
+											<span class="form-check-label fw-semibold text-gray-700">Remember me</span>
+										</label>
+									</div>
+									<!--begin::Link-->
+									<a href="#" class="link-primary">Forgot Password ?</a>
+									<!--end::Link-->
+								</div>
+								<!--end::Wrapper-->
+								<!--begin::Submit button-->
+								<div class="d-grid mb-10">
+									<button type="submit" id="kt_sign_in_submit" class="btn btn-primary">
+										<!--begin::Indicator label-->
+										<span class="indicator-label">Sign In</span>
+										<!--end::Indicator label-->
+										<!--begin::Indicator progress-->
+										<span class="indicator-progress">Please wait... 
+										<span class="spinner-border spinner-border-sm align-middle ms-2"></span></span>
+										<!--end::Indicator progress-->
+									</button>
+								</div>
+								<!--end::Submit button-->
+								<!--begin::Sign up-->
+								<div class="text-gray-500 text-center fw-semibold fs-6">Belum punya akun? 
+								<a href="{{ route('register') }}" class="link-primary">Sign up</a></div>
+								<!--end::Sign up-->
+							</form>
+							<!--end::Form-->
+						</div>
+						<!--end::Wrapper-->
+					</div>
+					<!--end::Form-->
+					<!--begin::Footer-->
+					<div class="w-lg-500px d-flex flex-stack px-10 mx-auto">
+						<!--begin::Languages-->
+						<div class="me-10">
+							<!--begin::Toggle-->
+							<button class="btn btn-flex btn-link btn-color-gray-700 btn-active-color-primary rotate fs-base" data-kt-menu-trigger="click" data-kt-menu-placement="bottom-start" data-kt-menu-offset="0px, 0px">
+							</button>
+							<!--end::Toggle-->
+							<!--begin::Menu-->
+							<div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg-light-primary fw-semibold w-200px py-4 fs-7" data-kt-menu="true" id="kt_auth_lang_menu">
 
-    <!--=============== REMIXICONS ===============-->
-    <link href="https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css" rel="stylesheet">
-
-    <!--=============== CSS ===============-->
-    <link rel="stylesheet" href="{{ asset('css/styles.css') }}">
-
-    <title>@yield('title', 'Login | Kursus Ryan Komputer')</title>
-</head>
-<body>
-    <div class="container">
-        <div class="login__content">
-            <img src="{{ asset('images/bgtoska.jpg') }}" alt="login image" class="login__img">
-
-            <form action="{{ route('login') }}" method="POST" class="login__form">
-                @csrf
-                <div>
-                    <h1 class="login__title">
-                        <span>Welcome</span> Back
-                    </h1>
-                    <p class="login__description">
-                        Welcome! Please login to continue.
-                    </p>
-                </div>
-                
-                <div>
-                    <div class="login__social">
-                        <a href="{{ route('auth.google') }}" class="login__social-button">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: 0.5rem;">
-                                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-                                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-                            </svg>
-                            Sign in with Google
-                        </a>
-                    </div>
-
-                    <div style="display: flex; align-items: center; margin: 1.5rem 0;">
-                        <div style="flex: 1; height: 1px; background-color: #e0e0e0;"></div>
-                        <span style="padding: 0 1rem; color: #8e8e8e; font-size: 0.875rem;">or</span>
-                        <div style="flex: 1; height: 1px; background-color: #e0e0e0;"></div>
-                    </div>
-
-                    <div class="login__inputs">
-                        <div>
-                            @if(session('loginError'))
-                                <div style="color: #EA4335; font-size: 0.75rem; margin-bottom: 0.5rem; padding: 0.5rem; background-color: #fef2f2; border-radius: 4px; border: 1px solid #fecaca;">{{ session('loginError') }}</div>
-                            @endif
-                            @if(session('error'))
-                                <div style="color: #EA4335; font-size: 0.75rem; margin-bottom: 0.5rem; padding: 0.5rem; background-color: #fef2f2; border-radius: 4px; border: 1px solid #fecaca;">{{ session('error') }}</div>
-                            @endif
-                            <label for="input-email" class="login__label">Email</label>
-                            <input type="email" 
-                                   name="email" 
-                                   placeholder="Enter your email address" 
-                                   value="{{ old('email') }}" 
-                                   required 
-                                   class="login__input" 
-                                   id="input-email">
-                            @error('email')
-                                <div style="color: #EA4335; font-size: 0.75rem; margin-top: 0.25rem;">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div>
-                            <label for="input-pass" class="login__label">Password</label>
-
-                            <div class="login__box">
-                                <input type="password" 
-                                       name="password" 
-                                       placeholder="Enter your password" 
-                                       required 
-                                       class="login__input" 
-                                       id="input-pass">
-                                <i class="ri-eye-off-line login__eye" id="input-icon"></i>
-                            </div>
-                            @error('password')
-                                <div style="color: #EA4335; font-size: 0.75rem; margin-top: 0.25rem;">{{ $message }}</div>
-                            @enderror
-                        </div>
-                    </div>
-
-                    @if($errors->any() && !$errors->has('email') && !$errors->has('password'))
-                        <div style="color: #EA4335; font-size: 0.75rem; margin-bottom: 0.5rem;">
-                            <ul style="list-style: disc; margin-left: 20px;">
-                                @foreach($errors->all() as $error)
-                                    <li>{{ $error }}</li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    @endif
-
-                    <div class="login__check">
-                        <input type="checkbox" class="login__check-input" id="input-check" name="remember">
-                        <label for="input-check" class="login__check-label">Remember me</label>
-                    </div>
-                </div>
-
-                <div>
-                    <div class="login__buttons">
-                        <button type="submit" class="login__button">Log In</button>
-                        <a href="{{ route('register') }}" class="login__button login__button-ghost" style="text-decoration: none; display: flex; align-items: center; justify-content: center;">Sign Up</a>
-                    </div>
-
-                    <a href="#" class="login__forgot">Forgot Password?</a>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!--=============== MAIN JS ===============-->
-    <script src="{{ asset('js/main.js') }}"></script>
-</body>
+								<!--end::Menu item-->
+							</div>
+							<!--end::Menu-->
+						</div>
+						<!--end::Languages-->
+						<!--begin::Links-->
+						<div class="d-flex fw-semibold text-primary fs-base gap-5">
+							<a href="#" target="_blank">Terms</a>
+							<a href="#" target="_blank">Plans</a>
+							<a href="#" target="_blank">Contact Us</a>
+						</div>
+						<!--end::Links-->
+					</div>
+					<!--end::Footer-->
+				</div>
+				<!--end::Body-->
+				<!--begin::Aside-->
+				<div class="d-flex flex-lg-row-fluid w-lg-50 bgi-size-cover bgi-position-center order-1 order-lg-2" style="background-image: url({{ asset('images/bgtoska1.jpg') }})">
+					<!--begin::Content-->
+					<div class="d-flex flex-column flex-center py-7 py-lg-15 px-5 px-md-15 w-100">
+						<!--begin::Logo-->
+						<a href="{{ route('home') }}" class="mb-0 mb-lg-12">
+							<img alt="Logo" src="{{ asset('images/logoke101.png') }}" class="h-60px h-lg-75px" />
+						</a>
+						<!--end::Logo-->
+					</div>
+					<!--end::Content-->
+				</div>
+				<!--end::Aside-->
+			</div>
+			<!--end::Authentication - Sign-in-->
+		</div>
+		<!--end::Root-->
+		<!--begin::Javascript-->
+		<script>var hostUrl = "{{ asset('metronic_html_v8.2.9_demo1/demo1/assets/') }}";</script>
+		<!--begin::Global Javascript Bundle(mandatory for all pages)-->
+		<script src="{{ asset('metronic_html_v8.2.9_demo1/demo1/assets/plugins/global/plugins.bundle.js') }}"></script>
+		<script src="{{ asset('metronic_html_v8.2.9_demo1/demo1/assets/js/scripts.bundle.js') }}"></script>
+		<!--end::Global Javascript Bundle-->
+		<!--begin::Custom Javascript(used for this page only)-->
+		<script src="{{ asset('metronic_html_v8.2.9_demo1/demo1/assets/js/custom/authentication/sign-in/general.js') }}"></script>
+		<!--end::Custom Javascript-->
+		<!--end::Javascript-->
+	</body>
+	<!--end::Body-->
 </html>

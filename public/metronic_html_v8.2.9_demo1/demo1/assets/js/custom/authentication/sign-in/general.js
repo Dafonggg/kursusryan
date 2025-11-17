@@ -123,30 +123,41 @@ var KTSigninGeneral = function () {
                     submitButton.disabled = true;
 
                     // Check axios library docs: https://axios-http.com/docs/intro
-                    axios.post(submitButton.closest('form').getAttribute('action'), new FormData(form)).then(function (response) {
-                        if (response) {
+                    axios.post(submitButton.closest('form').getAttribute('action'), new FormData(form), {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        }
+                    }).then(function (response) {
+                        if (response.data && response.data.success) {
                             form.reset();
+
+                            // Get redirect URL from server response
+                            const redirectUrl = response.data.redirect_url;
 
                             // Show message popup. For more info check the plugin's official documentation: https://sweetalert2.github.io/
                             Swal.fire({
-                                text: "You have successfully logged in!",
+                                text: response.data.message || "You have successfully logged in!",
                                 icon: "success",
                                 buttonsStyling: false,
                                 confirmButtonText: "Ok, got it!",
                                 customClass: {
                                     confirmButton: "btn btn-primary"
                                 }
+                            }).then(function (result) {
+                                // Always redirect when popup is closed (clicked or dismissed)
+                                if (redirectUrl) {
+                                    window.location.href = redirectUrl;
+                                }
                             });
-
-                            const redirectUrl = form.getAttribute('data-kt-redirect-url');
-
-                            if (redirectUrl) {
-                                location.href = redirectUrl;
-                            }
                         } else {
+                            // Hide loading indication
+                            submitButton.removeAttribute('data-kt-indicator');
+                            submitButton.disabled = false;
+
                             // Show error popup. For more info check the plugin's official documentation: https://sweetalert2.github.io/
                             Swal.fire({
-                                text: "Sorry, the email or password is incorrect, please try again.",
+                                text: response.data?.message || "Sorry, the email or password is incorrect, please try again.",
                                 icon: "error",
                                 buttonsStyling: false,
                                 confirmButtonText: "Ok, got it!",
@@ -156,8 +167,23 @@ var KTSigninGeneral = function () {
                             });
                         }
                     }).catch(function (error) {
+                        // Hide loading indication
+                        submitButton.removeAttribute('data-kt-indicator');
+                        submitButton.disabled = false;
+
+                        // Get error message from response
+                        let errorMessage = "Sorry, looks like there are some errors detected, please try again.";
+                        if (error.response && error.response.data) {
+                            if (error.response.data.message) {
+                                errorMessage = error.response.data.message;
+                            } else if (error.response.data.errors) {
+                                const firstError = Object.values(error.response.data.errors)[0];
+                                errorMessage = Array.isArray(firstError) ? firstError[0] : firstError;
+                            }
+                        }
+
                         Swal.fire({
-                            text: "Sorry, looks like there are some errors detected, please try again.",
+                            text: errorMessage,
                             icon: "error",
                             buttonsStyling: false,
                             confirmButtonText: "Ok, got it!",
@@ -165,12 +191,6 @@ var KTSigninGeneral = function () {
                                 confirmButton: "btn btn-primary"
                             }
                         });
-                    }).then(() => {
-                        // Hide loading indication
-                        submitButton.removeAttribute('data-kt-indicator');
-
-                        // Enable button
-                        submitButton.disabled = false;
                     });
                 } else {
                     // Show error popup. For more info check the plugin's official documentation: https://sweetalert2.github.io/
